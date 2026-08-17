@@ -6,6 +6,7 @@
   <title>Запись к психологу</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
+    * { box-sizing: border-box; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background-color: var(--tg-theme-bg-color, #f4f4f5);
@@ -15,7 +16,6 @@
       flex-direction: column;
       align-items: center;
       margin: 0;
-      box-sizing: border-box;
     }
     .card {
       background: var(--tg-theme-secondary-bg-color, #ffffff);
@@ -25,7 +25,6 @@
       max-width: 360px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
       text-align: center;
-      box-sizing: border-box;
     }
     .avatar {
       width: 76px;
@@ -40,10 +39,12 @@
     
     .section-title {
       text-align: left;
-      font-size: 13px;
-      font-weight: 600;
+      font-size: 12px;
+      font-weight: 700;
       color: #71717a;
-      margin: 12px 0 6px 4px;
+      margin: 14px 0 6px 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
     .option {
       background: var(--tg-theme-bg-color, #f4f4f5);
@@ -73,8 +74,7 @@
       background: var(--tg-theme-bg-color, #f4f4f5);
       color: var(--tg-theme-text-color, #18181b);
       font-size: 14px;
-      box-sizing: border-box;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
       outline: none;
     }
     .input-field:focus {
@@ -86,7 +86,7 @@
       color: #ef4444;
       font-size: 12px;
       text-align: left;
-      margin-bottom: 6px;
+      margin: 2px 0 8px 4px;
       display: none;
     }
 
@@ -112,7 +112,7 @@
     <h3>Анна Смирнова</h3>
     <p class="subtitle">Практикующий психолог</p>
 
-    <div class="section-title">ВЫБЕРИТЕ УСЛУГУ</div>
+    <div class="section-title">Выберите услугу</div>
     <div class="option active" onclick="selectItem(this, 'Онлайн-сессия - 3500 ₽')">
       <span>Онлайн-сессия</span>
       <b>3 500 ₽</b>
@@ -122,15 +122,16 @@
       <b>12 000 ₽</b>
     </div>
 
-    <div class="section-title">ДАТА И ВРЕМЯ</div>
+    <div class="section-title">Дата и время</div>
     <div class="row">
       <input type="date" id="dateInput" class="input-field" required>
-      <input type="time" id="timeInput" class="input-field" value="14:00" min="09:00" max="21:00" required>
+      <input type="time" id="timeInput" class="input-field" value="14:00" required>
     </div>
+    <div id="dateError" class="error-msg">Выберите будущую дату</div>
 
-    <div class="section-title">НОМЕР ТЕЛЕФОНА</div>
-    <input type="tel" id="phoneInput" class="input-field" placeholder="+7 (___) ___-__-__" maxlength="18" required>
-    <div id="phoneError" class="error-msg">Введите полный номер телефона</div>
+    <div class="section-title">Номер телефона (+7 9...)</div>
+    <input type="tel" id="phoneInput" class="input-field" placeholder="+7 (9__) ___-__-__" maxlength="18" required>
+    <div id="phoneError" class="error-msg">Введите номер в формате +7 (9XX) XXX-XX-XX</div>
 
     <button class="main-btn" onclick="submitBooking()">Подтвердить запись</button>
   </div>
@@ -140,17 +141,20 @@
     tg.ready();
     tg.expand();
 
-    // 1. Ограничение даты: от сегодня до +60 дней
-    const now = new Date();
-    const todayStr = now.toISOString().split('T')[0];
-    
+    // 1. Блокировка прошлых дат (локальное время клиента)
+    const localToday = new Date();
+    const yyyy = localToday.getFullYear();
+    const mm = String(localToday.getMonth() + 1).padStart(2, '0');
+    const dd = String(localToday.getDate()).padStart(2, '0');
+    const todayStr = `${yyyy}-${mm}-${dd}`;
+
     const maxDate = new Date();
-    maxDate.setDate(now.getDate() + 60);
-    const maxDateStr = maxDate.toISOString().split('T')[0];
+    maxDate.setDate(localToday.getDate() + 60);
+    const maxStr = maxDate.toISOString().split('T')[0];
 
     const dateInput = document.getElementById('dateInput');
     dateInput.min = todayStr;
-    dateInput.max = maxDateStr;
+    dateInput.max = maxStr;
     dateInput.value = todayStr;
 
     let selectedService = "Онлайн-сессия - 3500 ₽";
@@ -161,39 +165,49 @@
       selectedService = text;
     }
 
-    // 2. Умная маска ввода номера телефона (+7 ...)
+    // 2. Строгая маска: строго +7 (9XX) XXX-XX-XX
     const phoneInput = document.getElementById('phoneInput');
     phoneInput.addEventListener('input', function (e) {
-      let x = e.target.value.replace(/\D/g, '').match(/(\d{0,1})(\d{0,3})(\d{0,3})(\d{0,2})(\d{0,2})/);
-      if (!x[2]) {
-        e.target.value = x[1] ? '+7 (' : '';
-      } else {
-        e.target.value = !x[3] ? `+7 (${x[2]}` : `+7 (${x[2]}) ${x[3]}` + (x[4] ? `-${x[4]}` : '') + (x[5] ? `-${x[5]}` : '');
+      let val = e.target.value.replace(/\D/g, '');
+      
+      // Авто-коррекция первой цифры (8 -> 7)
+      if (val.startsWith('8')) val = '7' + val.slice(1);
+      if (!val.startsWith('7')) val = '7' + val;
+      
+      // Вторая цифра строго 9
+      if (val.length >= 2 && val[1] !== '9') {
+        val = '79' + val.slice(2);
+      } else if (val.length === 1) {
+        val = '79';
       }
+
+      let formatted = '+7 (9';
+      if (val.length > 2) formatted += val.substring(2, 4);
+      if (val.length >= 4) formatted += ') ' + val.substring(4, 7);
+      if (val.length >= 7) formatted += '-' + val.substring(7, 9);
+      if (val.length >= 9) formatted += '-' + val.substring(9, 11);
+
+      e.target.value = formatted;
       document.getElementById('phoneError').style.display = 'none';
     });
 
     function submitBooking() {
-      const selectedDate = document.getElementById('dateInput').value;
+      const selectedDate = dateInput.value;
       const selectedTime = document.getElementById('timeInput').value;
       const phone = phoneInput.value.trim();
 
-      // Валидация даты
+      // Проверка даты
       if (!selectedDate || selectedDate < todayStr) {
-        tg.showAlert("Пожалуйста, выберите корректную будущую дату.");
+        document.getElementById('dateError').style.display = 'block';
+        tg.showAlert("Нельзя выбрать прошедшую дату.");
         return;
       }
 
-      if (!selectedTime) {
-        tg.showAlert("Пожалуйста, выберите время приема.");
-        return;
-      }
-
-      // Валидация телефона (проверяем, что введено 11 цифр: +7 и 10 знаков)
-      const digitsOnly = phone.replace(/\D/g, '');
-      if (digitsOnly.length !== 11) {
+      // Проверка номера (ровно 11 цифр, начинается с 79)
+      const digits = phone.replace(/\D/g, '');
+      if (digits.length !== 11 || !digits.startsWith('79')) {
         document.getElementById('phoneError').style.display = 'block';
-        tg.showAlert("Пожалуйста, введите полный номер телефона в формате +7 (999) 000-00-00");
+        tg.showAlert("Введите корректный номер мобильного телефона (+7 9XX XXX-XX-XX).");
         return;
       }
 
