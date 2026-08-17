@@ -131,7 +131,7 @@
 
     <div class="section-title">Номер телефона (+7 9...)</div>
     <input type="tel" id="phoneInput" class="input-field" placeholder="+7 (9__) ___-__-__" maxlength="18" required>
-    <div id="phoneError" class="error-msg">Введите номер в формате +7 (9XX) XXX-XX-XX</div>
+    <div id="phoneError" class="error-msg">Введите корректный номер (+7 9XX XXX-XX-XX)</div>
 
     <button class="main-btn" onclick="submitBooking()">Подтвердить запись</button>
   </div>
@@ -141,7 +141,7 @@
     tg.ready();
     tg.expand();
 
-    // 1. Блокировка прошлых дат (локальное время клиента)
+    // 1. Ограничение дат: от сегодняшнего дня
     const localToday = new Date();
     const yyyy = localToday.getFullYear();
     const mm = String(localToday.getMonth() + 1).padStart(2, '0');
@@ -165,29 +165,43 @@
       selectedService = text;
     }
 
-    // 2. Строгая маска: строго +7 (9XX) XXX-XX-XX
+    // 2. Удобная маска с поддержкой свободного стирания Backspace
     const phoneInput = document.getElementById('phoneInput');
+    
     phoneInput.addEventListener('input', function (e) {
-      let val = e.target.value.replace(/\D/g, '');
-      
-      // Авто-коррекция первой цифры (8 -> 7)
-      if (val.startsWith('8')) val = '7' + val.slice(1);
-      if (!val.startsWith('7')) val = '7' + val;
-      
-      // Вторая цифра строго 9
-      if (val.length >= 2 && val[1] !== '9') {
-        val = '79' + val.slice(2);
-      } else if (val.length === 1) {
-        val = '79';
+      let inputVal = e.target.value;
+      let digits = inputVal.replace(/\D/g, '');
+
+      // Если пользователь стер всё до нуля
+      if (!digits) {
+        e.target.value = '';
+        return;
       }
 
-      let formatted = '+7 (9';
-      if (val.length > 2) formatted += val.substring(2, 4);
-      if (val.length >= 4) formatted += ') ' + val.substring(4, 7);
-      if (val.length >= 7) formatted += '-' + val.substring(7, 9);
-      if (val.length >= 9) formatted += '-' + val.substring(9, 11);
+      // Нормализуем начало номера
+      if (digits.startsWith('8')) digits = '7' + digits.slice(1);
+      if (!digits.startsWith('7')) digits = '7' + digits;
 
-      e.target.value = formatted;
+      // Если введена вторая цифра, но не 9 — исправляем на 9
+      if (digits.length >= 2 && digits[1] !== '9') {
+        digits = '79' + digits.slice(2);
+      }
+
+      let res = '+7 (';
+      if (digits.length > 1) {
+        res += digits.substring(1, 4);
+      }
+      if (digits.length >= 4) {
+        res += ') ' + digits.substring(4, 7);
+      }
+      if (digits.length >= 7) {
+        res += '-' + digits.substring(7, 9);
+      }
+      if (digits.length >= 9) {
+        res += '-' + digits.substring(9, 11);
+      }
+
+      e.target.value = res;
       document.getElementById('phoneError').style.display = 'none';
     });
 
@@ -196,18 +210,16 @@
       const selectedTime = document.getElementById('timeInput').value;
       const phone = phoneInput.value.trim();
 
-      // Проверка даты
       if (!selectedDate || selectedDate < todayStr) {
         document.getElementById('dateError').style.display = 'block';
         tg.showAlert("Нельзя выбрать прошедшую дату.");
         return;
       }
 
-      // Проверка номера (ровно 11 цифр, начинается с 79)
       const digits = phone.replace(/\D/g, '');
       if (digits.length !== 11 || !digits.startsWith('79')) {
         document.getElementById('phoneError').style.display = 'block';
-        tg.showAlert("Введите корректный номер мобильного телефона (+7 9XX XXX-XX-XX).");
+        tg.showAlert("Введите номер полностью: +7 (9XX) XXX-XX-XX");
         return;
       }
 
