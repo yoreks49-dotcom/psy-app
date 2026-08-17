@@ -82,6 +82,14 @@
     }
     .row { display: flex; gap: 8px; }
 
+    .error-msg {
+      color: #ef4444;
+      font-size: 12px;
+      text-align: left;
+      margin-bottom: 6px;
+      display: none;
+    }
+
     .main-btn {
       background-color: var(--tg-theme-button-color, #2481cc);
       color: var(--tg-theme-button-text-color, #ffffff);
@@ -117,11 +125,12 @@
     <div class="section-title">ДАТА И ВРЕМЯ</div>
     <div class="row">
       <input type="date" id="dateInput" class="input-field" required>
-      <input type="time" id="timeInput" class="input-field" required>
+      <input type="time" id="timeInput" class="input-field" value="14:00" min="09:00" max="21:00" required>
     </div>
 
-    <div class="section-title">КОНТАКТНЫЙ ТЕЛЕФОН</div>
-    <input type="tel" id="phoneInput" class="input-field" placeholder="+7 (999) 000-00-00" required>
+    <div class="section-title">НОМЕР ТЕЛЕФОНА</div>
+    <input type="tel" id="phoneInput" class="input-field" placeholder="+7 (___) ___-__-__" maxlength="18" required>
+    <div id="phoneError" class="error-msg">Введите полный номер телефона</div>
 
     <button class="main-btn" onclick="submitBooking()">Подтвердить запись</button>
   </div>
@@ -131,11 +140,18 @@
     tg.ready();
     tg.expand();
 
-    // Ограничиваем выбор даты только сегодняшним днем и будущим
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('dateInput').min = today;
-    document.getElementById('dateInput').value = today;
-    document.getElementById('timeInput').value = "14:00";
+    // 1. Ограничение даты: от сегодня до +60 дней
+    const now = new Date();
+    const todayStr = now.toISOString().split('T')[0];
+    
+    const maxDate = new Date();
+    maxDate.setDate(now.getDate() + 60);
+    const maxDateStr = maxDate.toISOString().split('T')[0];
+
+    const dateInput = document.getElementById('dateInput');
+    dateInput.min = todayStr;
+    dateInput.max = maxDateStr;
+    dateInput.value = todayStr;
 
     let selectedService = "Онлайн-сессия - 3500 ₽";
 
@@ -145,25 +161,46 @@
       selectedService = text;
     }
 
+    // 2. Умная маска ввода номера телефона (+7 ...)
+    const phoneInput = document.getElementById('phoneInput');
+    phoneInput.addEventListener('input', function (e) {
+      let x = e.target.value.replace(/\D/g, '').match(/(\d{0,1})(\d{0,3})(\d{0,3})(\d{0,2})(\d{0,2})/);
+      if (!x[2]) {
+        e.target.value = x[1] ? '+7 (' : '';
+      } else {
+        e.target.value = !x[3] ? `+7 (${x[2]}` : `+7 (${x[2]}) ${x[3]}` + (x[4] ? `-${x[4]}` : '') + (x[5] ? `-${x[5]}` : '');
+      }
+      document.getElementById('phoneError').style.display = 'none';
+    });
+
     function submitBooking() {
-      const date = document.getElementById('dateInput').value;
-      const time = document.getElementById('timeInput').value;
-      const phone = document.getElementById('phoneInput').value.trim();
+      const selectedDate = document.getElementById('dateInput').value;
+      const selectedTime = document.getElementById('timeInput').value;
+      const phone = phoneInput.value.trim();
 
-      if (!date || !time) {
-        tg.showAlert("Пожалуйста, выберите дату и время.");
+      // Валидация даты
+      if (!selectedDate || selectedDate < todayStr) {
+        tg.showAlert("Пожалуйста, выберите корректную будущую дату.");
         return;
       }
 
-      if (!phone || phone.length < 6) {
-        tg.showAlert("Пожалуйста, введите корректный номер телефона.");
+      if (!selectedTime) {
+        tg.showAlert("Пожалуйста, выберите время приема.");
         return;
       }
 
-      // Упаковываем все данные в JSON
+      // Валидация телефона (проверяем, что введено 11 цифр: +7 и 10 знаков)
+      const digitsOnly = phone.replace(/\D/g, '');
+      if (digitsOnly.length !== 11) {
+        document.getElementById('phoneError').style.display = 'block';
+        tg.showAlert("Пожалуйста, введите полный номер телефона в формате +7 (999) 000-00-00");
+        return;
+      }
+
       const payload = {
         service: selectedService,
-        datetime: `${date} в ${time}`,
+        date: selectedDate,
+        time: selectedTime,
         phone: phone
       };
 
