@@ -7,7 +7,7 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background-color: var(--tg-theme-bg-color, #f4f4f5);
       color: var(--tg-theme-text-color, #18181b);
       padding: 16px;
@@ -20,7 +20,7 @@
     .card {
       background: var(--tg-theme-secondary-bg-color, #ffffff);
       border-radius: 18px;
-      padding: 24px 20px;
+      padding: 20px;
       width: 100%;
       max-width: 360px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
@@ -28,28 +28,29 @@
       box-sizing: border-box;
     }
     .avatar {
-      width: 84px;
-      height: 84px;
+      width: 76px;
+      height: 76px;
       border-radius: 50%;
       object-fit: cover;
-      margin-bottom: 12px;
+      margin-bottom: 8px;
       border: 3px solid var(--tg-theme-button-color, #2481cc);
     }
-    h3 {
-      margin: 0 0 4px 0;
-      font-size: 20px;
-    }
-    .subtitle {
+    h3 { margin: 0 0 2px 0; font-size: 19px; }
+    .subtitle { color: #71717a; font-size: 13px; margin: 0 0 16px 0; }
+    
+    .section-title {
+      text-align: left;
+      font-size: 13px;
+      font-weight: 600;
       color: #71717a;
-      font-size: 14px;
-      margin: 0 0 18px 0;
+      margin: 12px 0 6px 4px;
     }
     .option {
       background: var(--tg-theme-bg-color, #f4f4f5);
       border: 2px solid transparent;
-      border-radius: 12px;
-      padding: 14px;
-      margin-bottom: 10px;
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 8px;
       cursor: pointer;
       display: flex;
       justify-content: space-between;
@@ -61,49 +62,68 @@
       border-color: var(--tg-theme-button-color, #2481cc);
       background: rgba(36, 129, 204, 0.08);
     }
-    .option span {
-      font-weight: 500;
-      font-size: 15px;
+    .option span { font-weight: 500; font-size: 14px; }
+    .option b { font-size: 14px; color: var(--tg-theme-button-color, #2481cc); }
+
+    .input-field {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid #d4d4d8;
+      background: var(--tg-theme-bg-color, #f4f4f5);
+      color: var(--tg-theme-text-color, #18181b);
+      font-size: 14px;
+      box-sizing: border-box;
+      margin-bottom: 8px;
+      outline: none;
     }
-    .option b {
-      font-size: 15px;
-      color: var(--tg-theme-button-color, #2481cc);
+    .input-field:focus {
+      border-color: var(--tg-theme-button-color, #2481cc);
     }
+    .row { display: flex; gap: 8px; }
+
     .main-btn {
       background-color: var(--tg-theme-button-color, #2481cc);
       color: var(--tg-theme-button-text-color, #ffffff);
       border: none;
       border-radius: 12px;
       width: 100%;
-      padding: 15px;
-      font-size: 16px;
+      padding: 14px;
+      font-size: 15px;
       font-weight: 600;
       cursor: pointer;
       margin-top: 14px;
     }
-    .main-btn:active {
-      opacity: 0.85;
-    }
+    .main-btn:active { opacity: 0.85; }
   </style>
 </head>
 <body>
 
   <div class="card">
-    <img class="avatar" src="https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=300" alt="Анна Смирнова">
+    <img class="avatar" src="https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=300" alt="Анна">
     <h3>Анна Смирнова</h3>
     <p class="subtitle">Практикующий психолог</p>
 
-    <div class="option active" onclick="selectItem(this, 'Онлайн-сессия (50 мин) - 3500 ₽')">
+    <div class="section-title">ВЫБЕРИТЕ УСЛУГУ</div>
+    <div class="option active" onclick="selectItem(this, 'Онлайн-сессия - 3500 ₽')">
       <span>Онлайн-сессия</span>
       <b>3 500 ₽</b>
     </div>
-
     <div class="option" onclick="selectItem(this, 'Пакет из 4 сессий - 12000 ₽')">
       <span>Пакет 4 сессии</span>
       <b>12 000 ₽</b>
     </div>
 
-    <button class="main-btn" onclick="sendChoice()">Записаться</button>
+    <div class="section-title">ДАТА И ВРЕМЯ</div>
+    <div class="row">
+      <input type="date" id="dateInput" class="input-field" required>
+      <input type="time" id="timeInput" class="input-field" required>
+    </div>
+
+    <div class="section-title">КОНТАКТНЫЙ ТЕЛЕФОН</div>
+    <input type="tel" id="phoneInput" class="input-field" placeholder="+7 (999) 000-00-00" required>
+
+    <button class="main-btn" onclick="submitBooking()">Подтвердить запись</button>
   </div>
 
   <script>
@@ -111,19 +131,44 @@
     tg.ready();
     tg.expand();
 
-    let currentChoice = "Онлайн-сессия (50 мин) - 3500 ₽";
+    // Ограничиваем выбор даты только сегодняшним днем и будущим
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('dateInput').min = today;
+    document.getElementById('dateInput').value = today;
+    document.getElementById('timeInput').value = "14:00";
+
+    let selectedService = "Онлайн-сессия - 3500 ₽";
 
     function selectItem(el, text) {
       document.querySelectorAll('.option').forEach(item => item.classList.remove('active'));
       el.classList.add('active');
-      currentChoice = text;
+      selectedService = text;
     }
 
-    function sendChoice() {
-      if (tg) {
-        tg.sendData(currentChoice);
-        tg.close();
+    function submitBooking() {
+      const date = document.getElementById('dateInput').value;
+      const time = document.getElementById('timeInput').value;
+      const phone = document.getElementById('phoneInput').value.trim();
+
+      if (!date || !time) {
+        tg.showAlert("Пожалуйста, выберите дату и время.");
+        return;
       }
+
+      if (!phone || phone.length < 6) {
+        tg.showAlert("Пожалуйста, введите корректный номер телефона.");
+        return;
+      }
+
+      // Упаковываем все данные в JSON
+      const payload = {
+        service: selectedService,
+        datetime: `${date} в ${time}`,
+        phone: phone
+      };
+
+      tg.sendData(JSON.stringify(payload));
+      tg.close();
     }
   </script>
 </body>
