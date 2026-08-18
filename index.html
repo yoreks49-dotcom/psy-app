@@ -82,20 +82,29 @@
     }
     .row { display: flex; gap: 8px; }
 
-    .phone-wrapper {
-      position: relative;
-      width: 100%;
+    .phone-box {
+      display: flex;
+      align-items: center;
+      background: var(--tg-theme-bg-color, #f4f4f5);
+      border: 1px solid #d4d4d8;
+      border-radius: 10px;
+      padding: 0 12px;
+      margin-bottom: 6px;
     }
-    .clear-btn {
-      position: absolute;
-      right: 12px;
-      top: 10px;
-      background: none;
+    .phone-prefix {
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--tg-theme-text-color, #18181b);
+      margin-right: 4px;
+    }
+    .phone-input-clean {
       border: none;
-      font-size: 16px;
-      color: #a1a1aa;
-      cursor: pointer;
-      display: none;
+      background: transparent;
+      padding: 12px 0;
+      font-size: 14px;
+      width: 100%;
+      outline: none;
+      color: var(--tg-theme-text-color, #18181b);
     }
 
     .error-msg {
@@ -146,11 +155,11 @@
     <div id="dateError" class="error-msg">Выберите будущую дату</div>
 
     <div class="section-title">Номер телефона</div>
-    <div class="phone-wrapper">
-      <input type="tel" id="phoneInput" class="input-field" placeholder="+7 (9__) ___-__-__" maxlength="18" required>
-      <button type="button" id="clearPhone" class="clear-btn" onclick="resetPhone()">✕</button>
+    <div class="phone-box">
+      <span class="phone-prefix">+7</span>
+      <input type="tel" id="phoneInput" class="phone-input-clean" placeholder="9991234567" maxlength="10" required>
     </div>
-    <div id="phoneError" class="error-msg">Введите номер в формате +7 (9XX) XXX-XX-XX</div>
+    <div id="phoneError" class="error-msg">Введите 10 цифр начиная с 9</div>
 
     <button class="main-btn" onclick="submitBooking()">Подтвердить запись</button>
   </div>
@@ -184,62 +193,17 @@
       selectedService = text;
     }
 
-    // 2. Безупречная маска с правильным удалением любого символа
+    // 2. Ввод номера: только цифры, мгновенное удаление без багов
     const phoneInput = document.getElementById('phoneInput');
-    const clearBtn = document.getElementById('clearPhone');
-
-    function formatPhoneNumber(val) {
-      let digits = val.replace(/\D/g, '');
-      
-      if (!digits) return '';
-
-      if (digits.startsWith('8')) digits = '7' + digits.slice(1);
-      if (!digits.startsWith('7')) digits = '7' + digits;
-      if (digits.length >= 2 && digits[1] !== '9') digits = '79' + digits.slice(2);
-
-      let formatted = '+7 (';
-      if (digits.length > 1) formatted += digits.substring(1, 4);
-      if (digits.length >= 4) formatted += ') ' + digits.substring(4, 7);
-      if (digits.length >= 7) formatted += '-' + digits.substring(7, 9);
-      if (digits.length >= 9) formatted += '-' + digits.substring(9, 11);
-
-      return formatted;
-    }
-
-    phoneInput.addEventListener('keydown', function(e) {
-      if (e.key === 'Backspace') {
-        const val = this.value;
-        const curPos = this.selectionStart;
-        
-        // Если перед курсором символ форматирования (-, ), пробел)
-        if (curPos > 0 && ['-', ' ', ')', '('].includes(val[curPos - 1])) {
-          e.preventDefault();
-          // Удаляем предыдущую значащую цифру
-          let before = val.substring(0, curPos - 1).replace(/\D*$/, '');
-          before = before.slice(0, -1);
-          let after = val.substring(curPos);
-          this.value = formatPhoneNumber(before + after);
-        }
-      }
-    });
-
-    phoneInput.addEventListener('input', function (e) {
-      let formatted = formatPhoneNumber(e.target.value);
-      e.target.value = formatted;
-      clearBtn.style.display = formatted ? 'block' : 'none';
+    phoneInput.addEventListener('input', function() {
+      this.value = this.value.replace(/\D/g, '');
       document.getElementById('phoneError').style.display = 'none';
     });
-
-    function resetPhone() {
-      phoneInput.value = '';
-      clearBtn.style.display = 'none';
-      phoneInput.focus();
-    }
 
     function submitBooking() {
       const selectedDate = dateInput.value;
       const selectedTime = document.getElementById('timeInput').value;
-      const phone = phoneInput.value.trim();
+      const rawDigits = phoneInput.value.trim();
 
       if (!selectedDate || selectedDate < todayStr) {
         document.getElementById('dateError').style.display = 'block';
@@ -247,18 +211,19 @@
         return;
       }
 
-      const digits = phone.replace(/\D/g, '');
-      if (digits.length !== 11 || !digits.startsWith('79')) {
+      if (rawDigits.length !== 10 || !rawDigits.startsWith('9')) {
         document.getElementById('phoneError').style.display = 'block';
-        tg.showAlert("Введите полный номер: +7 (9XX) XXX-XX-XX");
+        tg.showAlert("Введите 10 цифр номера начиная с 9 (например: 9991234567)");
         return;
       }
+
+      const formattedPhone = `+7 (${rawDigits.slice(0,3)}) ${rawDigits.slice(3,6)}-${rawDigits.slice(6,8)}-${rawDigits.slice(8,10)}`;
 
       const payload = {
         service: selectedService,
         date: selectedDate,
         time: selectedTime,
-        phone: phone
+        phone: formattedPhone
       };
 
       tg.sendData(JSON.stringify(payload));
