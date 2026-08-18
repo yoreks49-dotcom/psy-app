@@ -66,21 +66,38 @@
     .option span { font-weight: 500; font-size: 14px; }
     .option b { font-size: 14px; color: var(--tg-theme-button-color, #2481cc); }
 
-    .input-field {
-      width: 100%;
-      padding: 12px;
-      border-radius: 10px;
-      border: 1px solid #d4d4d8;
-      background: var(--tg-theme-bg-color, #f4f4f5);
-      color: var(--tg-theme-text-color, #18181b);
-      font-size: 14px;
-      margin-bottom: 6px;
-      outline: none;
+    /* Сетка дат и времени */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      margin-bottom: 8px;
     }
-    .input-field:focus {
-      border-color: var(--tg-theme-button-color, #2481cc);
+    .slot-btn {
+      padding: 10px 4px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 8px;
+      border: 1.5px solid transparent;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      background: #eefdf3;
+      color: #15803d;
+      border-color: #bbf7d0;
     }
-    .row { display: flex; gap: 8px; }
+    .slot-btn.active {
+      background: #15803d;
+      color: #ffffff;
+      border-color: #15803d;
+    }
+    .slot-btn.disabled {
+      background: #fef2f2 !important;
+      color: #dc2626 !important;
+      border-color: #fecaca !important;
+      cursor: not-allowed;
+      text-decoration: line-through;
+      opacity: 0.6;
+    }
 
     .phone-box {
       display: flex;
@@ -138,21 +155,20 @@
     <p class="subtitle">Практикующий психолог</p>
 
     <div class="section-title">Выберите услугу</div>
-    <div class="option active" onclick="selectItem(this, 'Онлайн-сессия - 3500 ₽')">
-      <span>Онлайн-сессия</span>
+    <div class="option active" onclick="selectService(this, 'Онлайн-сессия - 3500 ₽')">
+      <span>Онлайн-сессия (1 час)</span>
       <b>3 500 ₽</b>
     </div>
-    <div class="option" onclick="selectItem(this, 'Пакет из 4 сессий - 12000 ₽')">
+    <div class="option" onclick="selectService(this, 'Пакет из 4 сессий - 12000 ₽')">
       <span>Пакет 4 сессии</span>
       <b>12 000 ₽</b>
     </div>
 
-    <div class="section-title">Дата и время</div>
-    <div class="row">
-      <input type="date" id="dateInput" class="input-field" required>
-      <input type="time" id="timeInput" class="input-field" value="14:00" required>
-    </div>
-    <div id="dateError" class="error-msg">Выберите будущую дату</div>
+    <div class="section-title">Выберите дату</div>
+    <div class="grid" id="daysGrid"></div>
+
+    <div class="section-title">Доступное время</div>
+    <div class="grid" id="timesGrid"></div>
 
     <div class="section-title">Номер телефона</div>
     <div class="phone-box">
@@ -169,31 +185,91 @@
     tg.ready();
     tg.expand();
 
-    // 1. Ограничение дат: от сегодняшнего дня
-    const localToday = new Date();
-    const yyyy = localToday.getFullYear();
-    const mm = String(localToday.getMonth() + 1).padStart(2, '0');
-    const dd = String(localToday.getDate()).padStart(2, '0');
-    const todayStr = `${yyyy}-${mm}-${dd}`;
-
-    const maxDate = new Date();
-    maxDate.setDate(localToday.getDate() + 60);
-    const maxStr = maxDate.toISOString().split('T')[0];
-
-    const dateInput = document.getElementById('dateInput');
-    dateInput.min = todayStr;
-    dateInput.max = maxStr;
-    dateInput.value = todayStr;
+    // Получаем занятые слоты из URL (передаются ботом)
+    const urlParams = new URLSearchParams(window.location.search);
+    const bookedSlotsRaw = urlParams.get('booked') || '';
+    const bookedSlots = bookedSlotsRaw ? bookedSlotsRaw.split(',') : [];
 
     let selectedService = "Онлайн-сессия - 3500 ₽";
+    let selectedDate = "";
+    let selectedTime = "";
 
-    function selectItem(el, text) {
+    const availableTimes = ["10:00", "11:00", "12:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00"];
+
+    function selectService(el, text) {
       document.querySelectorAll('.option').forEach(item => item.classList.remove('active'));
       el.classList.add('active');
       selectedService = text;
     }
 
-    // 2. Ввод номера: только цифры, мгновенное удаление без багов
+    // Генерация ближайших 6 дней
+    const daysGrid = document.getElementById('daysGrid');
+    const today = new Date();
+    const daysList = [];
+
+    for (let i = 0; i < 6; i++) {
+      const d = new Date(today);
+      d.setDate(today.getDate() + i);
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      const dateKey = `${dd}.${mm}.${yyyy}`;
+      const dayName = d.toLocaleDateString('ru-RU', { weekday: 'short' });
+      daysList.push({ dateKey, display: `${dd}.${mm} (${dayName})` });
+    }
+
+    daysList.forEach((day, idx) => {
+      const btn = document.createElement('button');
+      btn.type = "button";
+      btn.className = 'slot-btn' + (idx === 0 ? ' active' : '');
+      btn.innerText = day.display;
+      btn.onclick = () => {
+        document.querySelectorAll('#daysGrid .slot-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        selectedDate = day.dateKey;
+        renderTimes();
+      };
+      daysGrid.appendChild(btn);
+    });
+
+    selectedDate = daysList[0].dateKey;
+
+    // Отрисовка слотов времени (зеленые / красные)
+    function renderTimes() {
+      const timesGrid = document.getElementById('timesGrid');
+      timesGrid.innerHTML = '';
+      selectedTime = "";
+
+      availableTimes.forEach(time => {
+        const slotKey = `${selectedDate} в ${time}`;
+        const isBooked = bookedSlots.includes(slotKey);
+
+        const btn = document.createElement('button');
+        btn.type = "button";
+        btn.className = 'slot-btn';
+        btn.innerText = time;
+
+        if (isBooked) {
+          btn.classList.add('disabled');
+          btn.title = "Время уже занято";
+        } else {
+          btn.onclick = () => {
+            document.querySelectorAll('#timesGrid .slot-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            selectedTime = time;
+          };
+          if (!selectedTime) {
+            btn.classList.add('active');
+            selectedTime = time;
+          }
+        }
+        timesGrid.appendChild(btn);
+      });
+    }
+
+    renderTimes();
+
+    // Телефон
     const phoneInput = document.getElementById('phoneInput');
     phoneInput.addEventListener('input', function() {
       this.value = this.value.replace(/\D/g, '');
@@ -201,28 +277,25 @@
     });
 
     function submitBooking() {
-      const selectedDate = dateInput.value;
-      const selectedTime = document.getElementById('timeInput').value;
       const rawDigits = phoneInput.value.trim();
 
-      if (!selectedDate || selectedDate < todayStr) {
-        document.getElementById('dateError').style.display = 'block';
-        tg.showAlert("Нельзя выбрать прошедшую дату.");
+      if (!selectedDate || !selectedTime) {
+        tg.showAlert("Пожалуйста, выберите дату и свободное время.");
         return;
       }
 
       if (rawDigits.length !== 10 || !rawDigits.startsWith('9')) {
         document.getElementById('phoneError').style.display = 'block';
-        tg.showAlert("Введите 10 цифр номера начиная с 9 (например: 9991234567)");
+        tg.showAlert("Введите корректный номер телефона (10 цифр с 9).");
         return;
       }
 
       const formattedPhone = `+7 (${rawDigits.slice(0,3)}) ${rawDigits.slice(3,6)}-${rawDigits.slice(6,8)}-${rawDigits.slice(8,10)}`;
+      const formattedSlot = `${selectedDate} в ${selectedTime}`;
 
       const payload = {
         service: selectedService,
-        date: selectedDate,
-        time: selectedTime,
+        datetime_slot: formattedSlot,
         phone: formattedPhone
       };
 
