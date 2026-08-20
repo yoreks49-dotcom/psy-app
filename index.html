@@ -16,33 +16,31 @@
     }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: radial-gradient(circle at center top, #1c1917, #09090b);
+      background: radial-gradient(circle at center top, #271c19, #09090b);
       color: #ffffff;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: space-between;
-      padding: 16px 14px;
+      padding: 16px 14px 20px 14px;
       overflow: hidden;
       touch-action: manipulation;
     }
 
-    /* Верхняя панель */
     .header {
       text-align: center;
-      margin-top: 6px;
+      margin-top: 4px;
     }
     .coin-badge {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      background: rgba(251, 191, 36, 0.12);
-      border: 1px solid rgba(251, 191, 36, 0.3);
-      padding: 4px 12px;
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      padding: 4px 14px;
       border-radius: 20px;
       font-size: 13px;
-      font-weight: 700;
+      font-weight: 800;
       color: #fbbf24;
       text-transform: uppercase;
       letter-spacing: 1px;
@@ -52,25 +50,21 @@
       align-items: center;
       justify-content: center;
       gap: 8px;
-      margin: 10px 0 2px 0;
-    }
-    .score-icon {
-      font-size: 34px;
+      margin: 8px 0 2px 0;
     }
     .score-val {
-      font-size: 42px;
+      font-size: 40px;
       font-weight: 900;
       color: #ffffff;
-      letter-spacing: 0.5px;
-      text-shadow: 0 0 24px rgba(251, 191, 36, 0.4);
+      text-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
     }
     .auto-rate {
-      font-size: 12px;
+      font-size: 13px;
       color: #34d399;
-      font-weight: 600;
+      font-weight: 700;
     }
 
-    /* Круглый кликер с 3D перспективой */
+    /* 3D Кликер */
     .coin-wrapper {
       position: relative;
       perspective: 1000px;
@@ -82,24 +76,20 @@
       margin: auto 0;
     }
     .glist-coin {
-      width: 230px;
-      height: 230px;
+      width: 220px;
+      height: 220px;
       border-radius: 50%;
+      background: url('GlistCoin.png') no-repeat center center;
       background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-      border: 6px solid #fbbf24;
-      box-shadow: 0 0 35px rgba(251, 191, 36, 0.45), inset 0 0 15px rgba(0,0,0,0.6);
+      border: 5px solid #fbbf24;
+      box-shadow: 0 0 35px rgba(251, 191, 36, 0.4), inset 0 0 15px rgba(0,0,0,0.6);
       cursor: pointer;
       transform-style: preserve-3d;
-      transition: transform 0.1s ease-out, box-shadow 0.1s ease;
+      transition: transform 0.08s ease-out;
       touch-action: manipulation;
     }
-    .glist-coin:active {
-      box-shadow: 0 0 50px rgba(251, 191, 36, 0.7);
-    }
 
-    /* Вылетающие частицы (фотка + цифра) */
+    /* Вылетающие частицы */
     .pop-particle {
       position: absolute;
       display: flex;
@@ -110,28 +100,28 @@
       font-weight: 900;
       color: #fbbf24;
       text-shadow: 0 0 8px rgba(0, 0, 0, 0.9);
-      animation: floatAndFade 0.75s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+      animation: floatAndFade 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
       z-index: 100;
     }
     .mini-pic {
-      width: 28px;
-      height: 28px;
+      width: 24px;
+      height: 24px;
       border-radius: 50%;
-      border: 2px solid #fbbf24;
+      border: 1.5px solid #fbbf24;
       object-fit: cover;
     }
     @keyframes floatAndFade {
       0% {
         opacity: 1;
-        transform: translate(0, 0) scale(0.9) rotate(0deg);
+        transform: translate(0, 0) scale(0.9);
       }
       100% {
         opacity: 0;
-        transform: translate(calc(-20px + 40px * var(--rx, 0.5)), -90px) scale(1.4) rotate(calc(-20deg + 40deg * var(--rx, 0.5)));
+        transform: translate(calc(-20px + 40px * var(--rx, 0.5)), -80px) scale(1.3);
       }
     }
 
-    /* Нижний блок: Энергия */
+    /* Энергия и прокачка */
     .bottom-section {
       width: 100%;
       max-width: 350px;
@@ -142,10 +132,9 @@
     .energy-row {
       display: flex;
       justify-content: space-between;
-      align-items: center;
       font-size: 13px;
       font-weight: 700;
-      color: #d4d4d8;
+      color: #e4e4e7;
     }
     .energy-bar-bg {
       width: 100%;
@@ -164,14 +153,13 @@
       transition: width 0.15s ease;
     }
 
-    /* Кнопки прокачки (Бусты) */
     .upgrades-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 6px;
     }
     .boost-btn {
-      background: rgba(39, 39, 42, 0.8);
+      background: rgba(39, 39, 42, 0.85);
       border: 1px solid #3f3f46;
       border-radius: 12px;
       padding: 8px 4px;
@@ -193,41 +181,25 @@
       cursor: not-allowed;
       border-color: #27272a;
     }
-    .boost-title {
-      font-size: 11px;
-      font-weight: 700;
-      color: #e4e4e7;
-    }
-    .boost-lvl {
-      font-size: 9px;
-      color: #a1a1aa;
-    }
-    .boost-cost {
-      font-size: 11px;
-      font-weight: 800;
-      color: #fbbf24;
-      margin-top: 2px;
-    }
+    .boost-title { font-size: 11px; font-weight: 700; color: #e4e4e7; }
+    .boost-lvl { font-size: 9px; color: #a1a1aa; }
+    .boost-cost { font-size: 11px; font-weight: 800; color: #fbbf24; margin-top: 2px; }
   </style>
 </head>
 <body>
 
-  <!-- Шапка -->
   <div class="header">
-    <div class="coin-badge">🔥 GlistCoin Official</div>
+    <div class="coin-badge">🐔 GlistCoin Official</div>
     <div class="score-container">
-      <span class="score-icon">🪙</span>
       <span class="score-val" id="score">0</span>
     </div>
     <div class="auto-rate" id="autoRate">+0 / сек</div>
   </div>
 
-  <!-- Кликер с 3D-наклоном -->
   <div class="coin-wrapper" id="coinWrapper">
     <div class="glist-coin" id="coin"></div>
   </div>
 
-  <!-- Нижняя панель с энергией и бустами -->
   <div class="bottom-section">
     <div>
       <div class="energy-row">
@@ -265,41 +237,48 @@
     if (tg) {
       tg.ready();
       tg.expand();
+      
+      // Нативная кнопка Telegram внизу экрана
+      tg.MainButton.setText("💾 СОХРАНИТЬ И ВЫЙТИ");
+      tg.MainButton.textColor = "#18181b";
+      tg.MainButton.color = "#fbbf24";
+      tg.MainButton.show();
+      tg.MainButton.onClick(saveAndExit);
     }
 
-    // Твоя картинка GlistCoin (загружена как аватарка коина)
-    const COIN_IMG_URL = "https://images.weserv.nl/?url=https://i.ibb.co/6R2nQ6w/glist.png&default=https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg";
-    
-    // Подставляем картинку на коин
-    const coin = document.getElementById('coin');
-    coin.style.backgroundImage = `url('https://picsum.photos/400')`; // Резерв
-    
-    // Состояние игры (сохраняется в localStorage)
-    let score = parseInt(localStorage.getItem('gc_score')) || 0;
-    let tapPower = parseInt(localStorage.getItem('gc_tap')) || 1;
-    let autoPower = parseInt(localStorage.getItem('gc_auto')) || 0;
+    // Чтение серверного прогресса из параметров URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const serverScore = parseInt(urlParams.get('score'));
+    const serverTap = parseInt(urlParams.get('tap'));
+    const serverAuto = parseInt(urlParams.get('auto'));
+
+    // Если бот передал значения — берем их, иначе берем из памяти браузера
+    let score = !isNaN(serverScore) ? serverScore : (parseInt(localStorage.getItem('gc_score')) || 0);
+    let tapPower = !isNaN(serverTap) ? serverTap : (parseInt(localStorage.getItem('gc_tap')) || 1);
+    let autoPower = !isNaN(serverAuto) ? serverAuto : (parseInt(localStorage.getItem('gc_auto')) || 0);
+
     let maxEnergy = parseInt(localStorage.getItem('gc_max_energy')) || 1000;
     let energy = parseInt(localStorage.getItem('gc_cur_energy')) || maxEnergy;
 
-    let costTap = parseInt(localStorage.getItem('gc_cost_tap')) || 50;
+    // Динамический пересчет цен улучшений в зависимости от текущего уровня
+    let costTap = Math.round(50 * Math.pow(1.8, tapPower - 1));
     let costEnergy = parseInt(localStorage.getItem('gc_cost_energy')) || 100;
-    let costAuto = parseInt(localStorage.getItem('gc_cost_auto')) || 200;
+    let costAuto = Math.round(200 * Math.pow(2.0, autoPower));
 
     const scoreEl = document.getElementById('score');
     const autoRateEl = document.getElementById('autoRate');
     const energyText = document.getElementById('energyText');
     const energyFill = document.getElementById('energyFill');
     const coinWrapper = document.getElementById('coinWrapper');
+    const coin = document.getElementById('coin');
 
-    function saveState() {
+    function saveLocal() {
       localStorage.setItem('gc_score', score);
       localStorage.setItem('gc_tap', tapPower);
       localStorage.setItem('gc_auto', autoPower);
       localStorage.setItem('gc_max_energy', maxEnergy);
       localStorage.setItem('gc_cur_energy', Math.round(energy));
-      localStorage.setItem('gc_cost_tap', costTap);
       localStorage.setItem('gc_cost_energy', costEnergy);
-      localStorage.setItem('gc_cost_auto', costAuto);
     }
 
     function updateUI() {
@@ -321,39 +300,34 @@
       document.getElementById('btnAuto').classList.toggle('disabled', score < costAuto);
     }
 
-    // 3D-наклон при тапе
     function handleTap(e) {
       if (energy < tapPower) {
         if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('warning');
         return;
       }
 
-      // Виброотклик iPhone
-      if (tg?.HapticFeedback) {
-        tg.HapticFeedback.impactOccurred('medium');
-      }
+      if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
 
       score += tapPower;
       energy -= tapPower;
 
-      // Расчет 3D-наклона от точки касания
       const rect = coin.getBoundingClientRect();
-      const touchX = (e.clientX || (e.touches && e.touches[0].clientX)) - rect.left;
-      const touchY = (e.clientY || (e.touches && e.touches[0].clientY)) - rect.top;
+      const clientX = e.clientX || (e.touches && e.touches[0].clientX) || 0;
+      const clientY = e.clientY || (e.touches && e.touches[0].clientY) || 0;
+      const touchX = clientX - rect.left;
+      const touchY = clientY - rect.top;
 
-      const tiltX = ((touchY - rect.height / 2) / (rect.height / 2)) * -18;
-      const tiltY = ((touchX - rect.width / 2) / (rect.width / 2)) * 18;
+      const tiltX = ((touchY - rect.height / 2) / (rect.height / 2)) * -16;
+      const tiltY = ((touchX - rect.width / 2) / (rect.width / 2)) * 16;
 
       coin.style.transform = `rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale(0.96)`;
       setTimeout(() => {
         coin.style.transform = 'rotateX(0deg) rotateY(0deg) scale(1)';
-      }, 100);
+      }, 90);
 
-      // Создание вылетающей частицы (+число и фотка)
       createParticle(touchX, touchY);
-
       updateUI();
-      saveState();
+      saveLocal();
     }
 
     function createParticle(x, y) {
@@ -363,27 +337,25 @@
       particle.style.left = `${x + 10}px`;
       particle.style.top = `${y - 10}px`;
 
-      particle.innerHTML = `<span>+${tapPower}</span>`;
+      particle.innerHTML = `<img class="mini-pic" src="GlistCoin.png"><span>+${tapPower}</span>`;
       coinWrapper.appendChild(particle);
 
-      setTimeout(() => particle.remove(), 750);
+      setTimeout(() => particle.remove(), 700);
     }
 
     coin.addEventListener('pointerdown', handleTap);
 
-    // Покупка Мультитапа
     function buyMultitap() {
       if (score >= costTap) {
         if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
         score -= costTap;
         tapPower += 1;
-        costTap = Math.round(costTap * 1.8);
+        costTap = Math.round(50 * Math.pow(1.8, tapPower - 1));
         updateUI();
-        saveState();
+        saveLocal();
       }
     }
 
-    // Покупка лимита энергии
     function buyEnergyLimit() {
       if (score >= costEnergy) {
         if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
@@ -392,38 +364,48 @@
         energy += 500;
         costEnergy = Math.round(costEnergy * 1.7);
         updateUI();
-        saveState();
+        saveLocal();
       }
     }
 
-    // Покупка автобота
     function buyAutoBot() {
       if (score >= costAuto) {
         if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
         score -= costAuto;
         autoPower += 1;
-        costAuto = Math.round(costAuto * 2.0);
+        costAuto = Math.round(200 * Math.pow(2.0, autoPower));
         updateUI();
-        saveState();
+        saveLocal();
       }
     }
 
-    // Пассивный доход каждую секунду
     setInterval(() => {
       if (autoPower > 0) {
         score += autoPower;
         updateUI();
-        saveState();
+        saveLocal();
       }
     }, 1000);
 
-    // Восстановление энергии (+3 каждые 0.5с)
     setInterval(() => {
       if (energy < maxEnergy) {
         energy = Math.min(maxEnergy, energy + 4);
         updateUI();
       }
     }, 500);
+
+    function saveAndExit() {
+      saveLocal();
+      if (tg) {
+        tg.sendData(JSON.stringify({
+          action: "sync",
+          score: score,
+          tap_power: tapPower,
+          auto_power: autoPower
+        }));
+        tg.close();
+      }
+    }
 
     updateUI();
   </script>
