@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-  <title>GlistCoin Boss Clicker</title>
+  <title>GlistCoin: Mega Boss Clicker</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     * {
@@ -16,94 +16,121 @@
     }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: radial-gradient(circle at center top, #2d1810, #09090b);
+      background: radial-gradient(circle at center, #45220a, #1a0c03, #09090b);
       color: #ffffff;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: space-between;
-      padding: 10px 12px 14px 12px;
-      overflow-x: hidden;
+      padding: 8px 10px 14px 10px;
+      overflow: hidden;
       touch-action: manipulation;
+      position: relative;
     }
 
-    /* Шапка баланса и звука */
+    /* Верхняя панель */
     .top-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
       width: 100%;
-      max-width: 360px;
-      padding: 4px 8px;
+      max-width: 390px;
+      background: rgba(0, 0, 0, 0.55);
+      border: 1px solid rgba(251, 191, 36, 0.35);
+      padding: 6px 12px;
+      border-radius: 14px;
+      backdrop-filter: blur(4px);
     }
     .score-badge {
-      font-size: 20px;
+      font-size: 19px;
       font-weight: 900;
       color: #fbbf24;
-      text-shadow: 0 0 12px rgba(251, 191, 36, 0.5);
+      text-shadow: 0 0 10px rgba(251, 191, 36, 0.6);
     }
     .top-controls {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
     }
     .dps-badge {
       font-size: 11px;
-      font-weight: 700;
+      font-weight: 800;
       color: #34d399;
       background: rgba(52, 211, 153, 0.15);
       padding: 4px 8px;
-      border-radius: 12px;
+      border-radius: 8px;
       border: 1px solid rgba(52, 211, 153, 0.3);
     }
-    .sound-toggle-btn {
-      background: rgba(39, 39, 42, 0.85);
-      border: 1px solid #3f3f46;
+    .sound-btn {
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.25);
       border-radius: 50%;
-      width: 30px;
-      height: 30px;
+      width: 28px;
+      height: 28px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 14px;
+      font-size: 13px;
       cursor: pointer;
     }
 
-    /* Босс-арена */
+    /* Арена с боссом */
     .boss-arena {
       display: flex;
       flex-direction: column;
       align-items: center;
       width: 100%;
-      max-width: 360px;
+      max-width: 390px;
       margin: 2px 0;
       position: relative;
     }
-    .boss-name {
-      font-size: 15px;
-      font-weight: 800;
-      color: #fca5a5;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 4px;
+    .boss-title-row {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      padding: 0 4px;
+      margin-bottom: 3px;
+      font-size: 13px;
+      font-weight: 900;
+      color: #fef08a;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+    }
+
+    /* Индикатор режима Берсерка x20 */
+    .buff-indicator {
+      display: none;
+      font-size: 11px;
+      font-weight: 900;
+      color: #ef4444;
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid #ef4444;
+      border-radius: 20px;
+      padding: 2px 8px;
+      margin-bottom: 3px;
+      animation: pulseBuff 0.5s infinite alternate;
+    }
+    @keyframes pulseBuff {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      100% { transform: scale(1.05); opacity: 1; text-shadow: 0 0 10px #ef4444; }
     }
 
     /* Полоска здоровья HP */
     .hp-container {
       width: 100%;
-      height: 16px;
-      background: #27272a;
+      height: 18px;
+      background: #1c1917;
       border-radius: 999px;
       overflow: hidden;
-      border: 1.5px solid #7f1d1d;
+      border: 2px solid #b91c1c;
       position: relative;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
     }
     .hp-bar {
       height: 100%;
       width: 100%;
-      background: linear-gradient(90deg, #ef4444, #f87171);
+      background: linear-gradient(90deg, #dc2626, #f87171);
       border-radius: 999px;
       transition: width 0.1s ease;
     }
@@ -113,14 +140,14 @@
       top: 0;
       left: 0;
       line-height: 14px;
-      font-size: 10px;
-      font-weight: 800;
+      font-size: 11px;
+      font-weight: 900;
       text-align: center;
       color: #fff;
       text-shadow: 0 1px 3px rgba(0,0,0,0.9);
     }
 
-    /* Круглый босс */
+    /* Плавающий босс */
     .boss-wrapper {
       position: relative;
       perspective: 1000px;
@@ -129,27 +156,60 @@
       display: flex;
       justify-content: center;
       align-items: center;
+      animation: floatIdle 3.2s ease-in-out infinite;
     }
+    @keyframes floatIdle {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-7px) rotate(1.5deg); }
+    }
+
     .boss-avatar {
-      width: 170px;
-      height: 170px;
+      width: 165px;
+      height: 165px;
       border-radius: 50%;
-      background-size: cover;
-      background-position: center;
-      border: 4px solid #fbbf24;
-      box-shadow: 0 0 30px rgba(251, 191, 36, 0.4), inset 0 0 15px rgba(0,0,0,0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
       cursor: pointer;
       transform-style: preserve-3d;
       transition: transform 0.08s ease;
+      filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.6));
       touch-action: manipulation;
     }
-    .boss-avatar.shake {
-      animation: hitShake 0.12s ease-in-out;
+    .boss-avatar.photo-mode {
+      background: url('GlistCoin.png') no-repeat center center;
+      background-size: cover;
+      border: 5px solid #fbbf24;
+      box-shadow: 0 0 40px rgba(251, 191, 36, 0.85);
     }
-    @keyframes hitShake {
-      0% { transform: scale(0.95) translate(2px, 1px); }
-      50% { transform: scale(0.92) translate(-2px, -1px); }
-      100% { transform: scale(1) translate(0, 0); }
+    .boss-avatar svg {
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    /* Летающий бонусный меч (Spawn) */
+    .flying-sword {
+      position: absolute;
+      width: 44px;
+      height: 44px;
+      background: radial-gradient(circle, #f59e0b, #78350f);
+      border: 2px solid #fef08a;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      cursor: pointer;
+      z-index: 200;
+      box-shadow: 0 0 20px #fbbf24;
+      animation: floatSword 4.5s linear forwards;
+    }
+    @keyframes floatSword {
+      0% { opacity: 0; transform: translate(var(--startX), var(--startY)) scale(0.5) rotate(0deg); }
+      15% { opacity: 1; transform: translate(var(--midX1), var(--midY1)) scale(1.1) rotate(120deg); }
+      85% { opacity: 1; transform: translate(var(--midX2), var(--midY2)) scale(1) rotate(240deg); }
+      100% { opacity: 0; transform: translate(var(--endX), var(--endY)) scale(0.4) rotate(360deg); }
     }
 
     /* Вылетающий урон */
@@ -160,57 +220,74 @@
       color: #fbbf24;
       text-shadow: 0 0 8px rgba(0,0,0,0.9);
       pointer-events: none;
-      animation: popUp 0.65s ease-out forwards;
+      animation: popUp 0.6s ease-out forwards;
       z-index: 100;
     }
     .dmg-text.crit {
-      font-size: 30px;
+      font-size: 28px;
       color: #ef4444;
       text-shadow: 0 0 12px rgba(239, 68, 68, 0.9);
+    }
+    .dmg-text.frenzy {
+      font-size: 32px;
+      color: #e11d48;
+      text-shadow: 0 0 16px #fda4af;
     }
     @keyframes popUp {
       0% { opacity: 1; transform: translateY(0) scale(0.9); }
       100% { opacity: 0; transform: translateY(-70px) scale(1.3); }
     }
 
-    /* Магазин артефактов */
+    /* Магазин предметов */
     .shop-section {
       width: 100%;
-      max-width: 360px;
+      max-width: 390px;
       display: flex;
       flex-direction: column;
-      gap: 5px;
-      max-height: 195px;
+      gap: 4px;
+      max-height: 180px;
       overflow-y: auto;
-      padding-right: 2px;
+      background: rgba(0, 0, 0, 0.45);
+      padding: 6px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
     .item-card {
-      background: rgba(39, 39, 42, 0.85);
-      border: 1px solid #3f3f46;
+      background: rgba(41, 26, 15, 0.85);
+      border: 1px solid #78350f;
       border-radius: 10px;
-      padding: 8px 10px;
+      padding: 6px 10px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 6px;
     }
     .item-card.locked {
-      opacity: 0.45;
-      background: rgba(24, 24, 27, 0.6);
+      opacity: 0.35;
+      background: rgba(20, 10, 5, 0.6);
       border-style: dashed;
     }
     .item-card.bought {
       border-color: #059669;
-      background: rgba(5, 150, 105, 0.15);
+      background: rgba(6, 78, 59, 0.4);
     }
     .item-left {
       display: flex;
       align-items: center;
       gap: 8px;
     }
-    .item-icon { font-size: 22px; }
-    .item-info-name { font-size: 13px; font-weight: 700; color: #f4f4f5; }
-    .item-info-desc { font-size: 10px; color: #a1a1aa; }
+    .item-icon-box {
+      font-size: 19px;
+      width: 30px;
+      height: 30px;
+      background: rgba(0,0,0,0.3);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .item-info-name { font-size: 12px; font-weight: 800; color: #fef08a; }
+    .item-info-desc { font-size: 10px; color: #d6d3d1; }
+    
     .buy-btn {
       background: linear-gradient(90deg, #f59e0b, #fbbf24);
       color: #18181b;
@@ -218,29 +295,29 @@
       border-radius: 8px;
       padding: 6px 10px;
       font-size: 11px;
-      font-weight: 800;
+      font-weight: 900;
       cursor: pointer;
       white-space: nowrap;
     }
     .buy-btn.disabled {
-      background: #3f3f46;
-      color: #71717a;
+      background: #44403c;
+      color: #78716c;
       cursor: not-allowed;
     }
 
     /* Кнопка сохранения */
     .save-action-btn {
       width: 100%;
-      max-width: 360px;
-      background: linear-gradient(90deg, #f59e0b, #fbbf24);
-      color: #18181b;
+      max-width: 390px;
+      background: linear-gradient(90deg, #eab308, #ca8a04);
+      color: #1c1917;
       border: none;
       border-radius: 10px;
       padding: 10px;
       font-size: 13px;
-      font-weight: 800;
+      font-weight: 900;
       cursor: pointer;
-      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);
+      box-shadow: 0 4px 14px rgba(234, 179, 8, 0.3);
       margin-top: 4px;
     }
     .save-action-btn:active { transform: scale(0.97); }
@@ -248,22 +325,26 @@
 </head>
 <body>
 
-  <!-- Верхняя панель -->
+  <!-- Верхняя строка -->
   <div class="top-bar">
     <div class="score-badge">🪙 <span id="score">0</span></div>
     <div class="top-controls">
-      <div class="dps-badge" id="dpsText">+0/с</div>
-      <button type="button" class="sound-toggle-btn" id="soundBtn" onclick="toggleSound()">🔊</button>
+      <div class="dps-badge" id="dpsText">+0/с (Тап: 1)</div>
+      <button type="button" class="sound-btn" id="soundBtn" onclick="toggleSound()">🔊</button>
     </div>
   </div>
 
-  <!-- Арена с Боссом -->
+  <!-- Арена Босса -->
   <div class="boss-arena">
-    <div class="boss-name" id="bossName">Уровень 1: Цыпленок-Новичок</div>
+    <div class="buff-indicator" id="buffIndicator">🔥 БЕРСЕРК: УРОН x20 (5с)</div>
+    <div class="boss-title-row">
+      <span id="bossName">Босс 1: 99 Сынини (Пицца)</span>
+      <span id="stageNum">Этап 1/10</span>
+    </div>
     
     <div class="hp-container">
       <div class="hp-bar" id="hpBar"></div>
-      <div class="hp-text" id="hpText">1 500 / 1 500 HP</div>
+      <div class="hp-text" id="hpText">5 000 / 5 000 HP</div>
     </div>
 
     <div class="boss-wrapper" id="bossWrapper">
@@ -271,10 +352,10 @@
     </div>
   </div>
 
-  <!-- Магазин предметов -->
+  <!-- Магазин сокрытых артефактов -->
   <div class="shop-section" id="shopList"></div>
 
-  <!-- Кнопка синхронизации -->
+  <!-- Кнопка записи в топ -->
   <button type="button" class="save-action-btn" onclick="saveAndExit()">🏆 СОХРАНИТЬ В ТОП</button>
 
   <script>
@@ -284,20 +365,16 @@
       tg.expand();
     }
 
-    // ================= ЗВУКОВОЙ ДВИЖОК (Web Audio API) =================
+    // ================= ЗВУКОВОЙ ДВИЖОК =================
     let audioCtx = null;
     let isSoundOn = localStorage.getItem('gb_sound') !== 'false';
 
     function initAudio() {
       if (!audioCtx) {
         const AudioContext = window.AudioContext || window.webkitAudioContext;
-        if (AudioContext) {
-          audioCtx = new AudioContext();
-        }
+        if (AudioContext) audioCtx = new AudioContext();
       }
-      if (audioCtx && audioCtx.state === 'suspended') {
-        audioCtx.resume();
-      }
+      if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
     }
 
     function toggleSound() {
@@ -306,86 +383,75 @@
       document.getElementById('soundBtn').innerText = isSoundOn ? '🔊' : '🔇';
     }
 
-    // Звук обычного тапа (сочный клик-поп)
-    function playTapSound() {
+    function playTone(freq, duration, type='sine', gainVal=0.3) {
       if (!isSoundOn) return;
       initAudio();
       if (!audioCtx) return;
-
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
-
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(450, audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(80, audioCtx.currentTime + 0.06);
-
-      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.06);
-
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(Math.max(20, freq * 0.2), audioCtx.currentTime + duration);
+      gain.gain.setValueAtTime(gainVal, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
       osc.connect(gain);
       gain.connect(audioCtx.destination);
-
       osc.start();
-      osc.stop(audioCtx.currentTime + 0.06);
+      osc.stop(audioCtx.currentTime + duration);
     }
 
-    // Звук критического удара (звонкий металлический акцент)
-    function playCritSound() {
+    function playTapSound() { playTone(420, 0.05, 'triangle', 0.25); }
+    function playCritSound() { playTone(880, 0.12, 'sine', 0.45); }
+    function playSwordSound() {
       if (!isSoundOn) return;
       initAudio();
-      if (!audioCtx) return;
-
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(900, audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.15);
-
-      gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
-
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.15);
+      playTone(1200, 0.25, 'sawtooth', 0.4);
     }
 
-    // ================= КОНФИГУРАЦИЯ БОССОВ =================
+    // Форматирование чисел: 1.5k, 2.4M, 10B
+    function formatNum(num) {
+      if (num >= 1e9) return (num / 1e9).toFixed(2).replace(/\.00$/, '') + 'B';
+      if (num >= 1e6) return (num / 1e6).toFixed(2).replace(/\.00$/, '') + 'M';
+      if (num >= 1e3) return (num / 1e3).toFixed(1).replace(/\.0$/, '') + 'k';
+      return Math.round(num).toString();
+    }
+
+    // ================= 10 БОССОВ =================
+    const SVG_PIZZA = `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="#f59e0b" stroke="#78350f" stroke-width="4"/><circle cx="50" cy="50" r="40" fill="#fbbf24"/><circle cx="30" cy="30" r="7" fill="#dc2626"/><circle cx="70" cy="32" r="6" fill="#dc2626"/><circle cx="48" cy="74" r="7" fill="#dc2626"/><ellipse cx="32" cy="44" rx="9" ry="12" fill="#fff"/><circle cx="34" cy="44" r="5" fill="#991b1b"/><ellipse cx="68" cy="44" rx="9" ry="12" fill="#fff"/><circle cx="66" cy="44" r="5" fill="#991b1b"/><path d="M24 58 Q50 90 76 58 Z" fill="#450a0a" stroke="#1c1917" stroke-width="2"/><polygon points="30,60 35,74 40,60 45,74 50,60 55,74 60,60 65,74 70,60" fill="#fff"/></svg>`;
+    const SVG_CHICKEN = `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="#facc15" stroke="#ca8a04" stroke-width="4"/><path d="M50 8 C40 2, 35 18, 50 18 C65 18, 60 2, 50 8" fill="#ef4444"/><circle cx="34" cy="40" r="10" fill="#fff"/><circle cx="34" cy="40" r="5" fill="#000"/><circle cx="66" cy="40" r="10" fill="#fff"/><circle cx="66" cy="40" r="5" fill="#000"/><polygon points="50,46 38,62 62,62" fill="#ea580c"/><path d="M30 68 Q50 86 70 68" stroke="#1c1917" stroke-width="3" fill="#fff"/><path d="M34 68 L37 76 L42 68 L47 76 L52 68 L57 76 L62 68 L66 76" stroke="#1c1917" stroke-width="2" fill="none"/></svg>`;
+    const SVG_SHAURMA = `<svg viewBox="0 0 100 100"><rect x="25" y="15" width="50" height="70" rx="20" fill="#d97706" stroke="#78350f" stroke-width="4"/><circle cx="40" cy="38" r="6" fill="#ef4444"/><circle cx="60" cy="38" r="6" fill="#ef4444"/><path d="M35 58 Q50 72 65 58" stroke="#fff" stroke-width="4" fill="none"/><circle cx="50" cy="22" r="4" fill="#22c55e"/><circle cx="42" cy="74" r="5" fill="#22c55e"/></svg>`;
+    const SVG_CYBORG = `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="#3f3f46" stroke="#18181b" stroke-width="4"/><rect x="20" y="34" width="60" height="18" rx="6" fill="#18181b"/><line x1="24" y1="43" x2="76" y2="43" stroke="#ef4444" stroke-width="6" stroke-linecap="round"/><circle cx="50" cy="43" r="6" fill="#fef08a"/><rect x="30" y="64" width="40" height="14" rx="3" fill="#71717a"/><line x1="38" y1="64" x2="38" y2="78" stroke="#18181b" stroke-width="2"/><line x1="50" y1="64" x2="50" y2="78" stroke="#18181b" stroke-width="2"/><line x1="62" y1="64" x2="62" y2="78" stroke="#18181b" stroke-width="2"/></svg>`;
+    const SVG_PELMEN = `<svg viewBox="0 0 100 100"><path d="M15 65 C15 30, 85 30, 85 65 C85 85, 15 85, 15 65 Z" fill="#f4f4f5" stroke="#a1a1aa" stroke-width="4"/><circle cx="38" cy="52" r="5" fill="#dc2626"/><circle cx="62" cy="52" r="5" fill="#dc2626"/><path d="M40 68 Q50 56 60 68" stroke="#09090b" stroke-width="3" fill="none"/></svg>`;
+    const SVG_GLADIATOR = `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="#ca8a04" stroke="#713f12" stroke-width="4"/><rect x="25" y="30" width="50" height="24" rx="4" fill="#451a03"/><circle cx="40" cy="42" r="4" fill="#ef4444"/><circle cx="60" cy="42" r="4" fill="#ef4444"/><path d="M40 70 L50 60 L60 70" stroke="#fef08a" stroke-width="4" fill="none"/></svg>`;
+    const SVG_BURGER = `<svg viewBox="0 0 100 100"><path d="M20 40 Q50 15 80 40 Z" fill="#d97706" stroke="#78350f" stroke-width="3"/><rect x="18" y="44" width="64" height="8" rx="3" fill="#16a34a"/><rect x="16" y="54" width="68" height="12" rx="4" fill="#7f1d1d"/><circle cx="38" cy="60" r="4" fill="#ef4444"/><circle cx="62" cy="60" r="4" fill="#ef4444"/><path d="M20 70 Q50 90 80 70 Z" fill="#d97706" stroke="#78350f" stroke-width="3"/></svg>`;
+    const SVG_TEAPOT = `<svg viewBox="0 0 100 100"><circle cx="50" cy="54" r="36" fill="#0284c7" stroke="#075985" stroke-width="4"/><ellipse cx="50" cy="24" rx="20" ry="6" fill="#38bdf8"/><circle cx="40" cy="50" r="5" fill="#fef08a"/><circle cx="60" cy="50" r="5" fill="#fef08a"/><path d="M38 68 Q50 78 62 68" stroke="#fff" stroke-width="3" fill="none"/></svg>`;
+    const SVG_COSMIC = `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="#581c87" stroke="#c084fc" stroke-width="4"/><circle cx="50" cy="50" r="30" fill="#9333ea"/><circle cx="36" cy="45" r="7" fill="#38bdf8"/><circle cx="64" cy="45" r="7" fill="#38bdf8"/><path d="M34 66 Q50 82 66 66" stroke="#f472b6" stroke-width="4" fill="none"/></svg>`;
+
     const BOSSES = [
-      {
-        name: "Уровень 1: Цыпленок-Новичок",
-        hp: 1500,
-        reward: 500,
-        img: "https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg?auto=compress&cs=tinysrgb&w=300"
-      },
-      {
-        name: "Уровень 2: Злой Полковник",
-        hp: 6000,
-        reward: 2500,
-        img: "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=300"
-      },
-      {
-        name: "Уровень 3: Кибер-Яйцо Овипрайм",
-        hp: 25000,
-        reward: 10000,
-        img: "https://images.pexels.com/photos/1624496/pexels-photo-1624496.jpeg?auto=compress&cs=tinysrgb&w=300"
-      },
-      {
-        name: "ФИНАЛ: Властелин Шумовки 👑",
-        hp: 100000,
-        reward: 50000,
-        img: "GlistCoin.png"
-      }
+      { name: "1. 99 Сынини (Пицца)", hp: 5000, reward: 2000, type: "svg", svg: SVG_PIZZA },
+      { name: "2. Бешеный Цыпа", hp: 25000, reward: 10000, type: "svg", svg: SVG_CHICKEN },
+      { name: "3. Доктор Шаурма", hp: 100000, reward: 45000, type: "svg", svg: SVG_SHAURMA },
+      { name: "4. Кибер-Глист 3000", hp: 450000, reward: 200000, type: "svg", svg: SVG_CYBORG },
+      { name: "5. Пельмень Ярости", hp: 1800000, reward: 800000, type: "svg", svg: SVG_PELMEN },
+      { name: "6. Золотой Петух-Гладиатор", hp: 7500000, reward: 3500000, type: "svg", svg: SVG_GLADIATOR },
+      { name: "7. Демонический Бургер", hp: 30000000, reward: 15000000, type: "svg", svg: SVG_BURGER },
+      { name: "8. Ядерный Чайник", hp: 120000000, reward: 60000000, type: "svg", svg: SVG_TEAPOT },
+      { name: "9. Космический Овипрайм", hp: 500000000, reward: 250000000, type: "svg", svg: SVG_COSMIC },
+      { name: "10. ФИНАЛ: Властелин Шумовки 👑", hp: 2000000000, reward: 1000000000, type: "photo" }
     ];
 
+    // ================= 10 АРТЕФАКТОВ В МАГАЗИНЕ =================
     const ITEMS = [
-      { id: 0, name: "Деревянная ложка", icon: "🥄", cost: 50, tap: 2, auto: 0, desc: "+2 к клику" },
-      { id: 1, name: "Стальная шумовка", icon: "🍳", cost: 350, tap: 8, auto: 3, desc: "+8 к клику, +3/сек" },
-      { id: 2, name: "Электро-венчик", icon: "⚡", cost: 1800, tap: 30, auto: 15, desc: "+30 к клику, +15/сек" },
-      { id: 3, name: "Броня из фольги", icon: "🛡️", cost: 7500, tap: 100, auto: 50, desc: "+100 к клику, +50/сек" },
-      { id: 4, name: "Золотой капюшон", icon: "👑", cost: 30000, tap: 400, auto: 200, desc: "+400 к клику, +200/сек" }
+      { id: 0, name: "Деревянная ложка", icon: "🥄", cost: 100, tap: 4, auto: 1, desc: "+4 клик, +1/сек" },
+      { id: 1, name: "Стальная шумовка", icon: "🍳", cost: 800, tap: 20, auto: 8, desc: "+20 клик, +8/сек" },
+      { id: 2, name: "Электро-венчик", icon: "⚡", cost: 4500, tap: 90, auto: 35, desc: "+90 клик, +35/сек" },
+      { id: 3, name: "Броня из фольги", icon: "🛡️", cost: 25000, tap: 400, auto: 180, desc: "+400 клик, +180/сек" },
+      { id: 4, name: "Золотой капюшон", icon: "👑", cost: 120000, tap: 1800, auto: 850, desc: "+1.8k клик, +850/с" },
+      { id: 5, name: "Плазменная тёрка", icon: "🔮", cost: 600000, tap: 8000, auto: 4000, desc: "+8k клик, +4k/с" },
+      { id: 6, name: "Кибер-Курятник", icon: "🤖", cost: 3000000, tap: 35000, auto: 18000, desc: "+35k клик, +18k/с" },
+      { id: 7, name: "Ядерный фартук", icon: "☢️", cost: 15000000, tap: 160000, auto: 80000, desc: "+160k клик, +80k/с" },
+      { id: 8, name: "Антиматерия-Сковорода", icon: "🌌", cost: 80000000, tap: 750000, auto: 400000, desc: "+750k клик, +400k/с" },
+      { id: 9, name: "Перчатка Всевластия", icon: "💎", cost: 400000000, tap: 3500000, auto: 2000000, desc: "+3.5M клик, +2M/с" }
     ];
 
     const urlParams = new URLSearchParams(window.location.search);
@@ -401,14 +467,20 @@
     let currentHp = parseInt(localStorage.getItem('gb_boss_hp')) || BOSSES[currentBossIdx].hp;
     let unlockedItemId = parseInt(localStorage.getItem('gb_unlocked_item')) || 0;
 
+    // Берсерк бафф
+    let frenzyMultiplier = 1;
+    let frenzyTimer = null;
+
     const scoreEl = document.getElementById('score');
     const dpsText = document.getElementById('dpsText');
     const bossNameEl = document.getElementById('bossName');
+    const stageNumEl = document.getElementById('stageNum');
     const hpBar = document.getElementById('hpBar');
     const hpText = document.getElementById('hpText');
     const bossAvatar = document.getElementById('bossAvatar');
     const bossWrapper = document.getElementById('bossWrapper');
     const shopList = document.getElementById('shopList');
+    const buffIndicator = document.getElementById('buffIndicator');
 
     function saveLocal() {
       localStorage.setItem('gb_score', score);
@@ -422,11 +494,19 @@
     function updateBossUI() {
       const boss = BOSSES[currentBossIdx];
       bossNameEl.innerText = boss.name;
-      bossAvatar.style.backgroundImage = `url('${boss.img}')`;
-      
+      stageNumEl.innerText = `Этап ${currentBossIdx + 1}/${BOSSES.length}`;
+
+      if (boss.type === "photo") {
+        bossAvatar.innerHTML = "";
+        bossAvatar.classList.add("photo-mode");
+      } else {
+        bossAvatar.classList.remove("photo-mode");
+        bossAvatar.innerHTML = boss.svg;
+      }
+
       const pct = Math.max(0, (currentHp / boss.hp) * 100);
       hpBar.style.width = `${pct}%`;
-      hpText.innerText = `${Math.round(currentHp).toLocaleString()} / ${boss.hp.toLocaleString()} HP`;
+      hpText.innerText = `${formatNum(currentHp)} / ${formatNum(boss.hp)} HP`;
     }
 
     function renderShop() {
@@ -442,10 +522,10 @@
         if (isLocked) {
           card.innerHTML = `
             <div class="item-left">
-              <span class="item-icon">❓</span>
+              <div class="item-icon-box">❓</div>
               <div>
                 <div class="item-info-name">Неизвестный артефакт</div>
-                <div class="item-info-desc">Купите предыдущий предмет</div>
+                <div class="item-info-desc">Заблокировано</div>
               </div>
             </div>
             <button class="buy-btn disabled">???</button>
@@ -453,7 +533,7 @@
         } else if (isBought) {
           card.innerHTML = `
             <div class="item-left">
-              <span class="item-icon">${item.icon}</span>
+              <div class="item-icon-box">${item.icon}</div>
               <div>
                 <div class="item-info-name">${item.name}</div>
                 <div class="item-info-desc">Активно (${item.desc})</div>
@@ -464,14 +544,14 @@
         } else {
           card.innerHTML = `
             <div class="item-left">
-              <span class="item-icon">${item.icon}</span>
+              <div class="item-icon-box">${item.icon}</div>
               <div>
                 <div class="item-info-name">${item.name}</div>
                 <div class="item-info-desc">${item.desc}</div>
               </div>
             </div>
             <button class="buy-btn ${score < item.cost ? 'disabled' : ''}" onclick="buyItem(${idx})">
-              ${item.cost.toLocaleString()} 🪙
+              ${formatNum(item.cost)} 🪙
             </button>
           `;
         }
@@ -480,57 +560,114 @@
     }
 
     function updateUI() {
-      scoreEl.innerText = score.toLocaleString('ru-RU');
-      dpsText.innerText = `+${autoPower}/с (Тап: ${tapPower})`;
+      scoreEl.innerText = formatNum(score);
+      dpsText.innerText = `+${formatNum(autoPower)}/с (Тап: ${formatNum(tapPower * frenzyMultiplier)})`;
       updateBossUI();
       renderShop();
     }
 
+    // ================= СПАВН ЛЕТАЮЩЕГО МЕЧА (x20 УРОН) =================
+    function spawnFlyingSword() {
+      const sword = document.createElement('div');
+      sword.className = 'flying-sword';
+      sword.innerHTML = '⚔️';
+
+      // Случайная траектория полета
+      const startX = Math.random() < 0.5 ? -60 : 340;
+      const endX = startX < 0 ? 350 : -60;
+      const startY = 40 + Math.random() * 200;
+      const endY = 40 + Math.random() * 200;
+
+      sword.style.setProperty('--startX', `${startX}px`);
+      sword.style.setProperty('--startY', `${startY}px`);
+      sword.style.setProperty('--midX1', `${(startX + endX) / 2 + (Math.random() * 80 - 40)}px`);
+      sword.style.setProperty('--midY1', `${(startY + endY) / 2 - 60}px`);
+      sword.style.setProperty('--midX2', `${(startX + endX) / 2 + (Math.random() * 80 - 40)}px`);
+      sword.style.setProperty('--midY2', `${(startY + endY) / 2 + 60}px`);
+      sword.style.setProperty('--endX', `${endX}px`);
+      sword.style.setProperty('--endY', `${endY}px`);
+
+      sword.addEventListener('pointerdown', (e) => {
+        e.stopPropagation();
+        playSwordSound();
+        if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+
+        // Включаем x20 БЕРСЕРК
+        frenzyMultiplier = 20;
+        buffIndicator.style.display = 'block';
+        let timeLeft = 6;
+        buffIndicator.innerText = `🔥 БЕРСЕРК: УРОН x20 (${timeLeft}с)`;
+
+        clearInterval(frenzyTimer);
+        frenzyTimer = setInterval(() => {
+          timeLeft--;
+          if (timeLeft <= 0) {
+            clearInterval(frenzyTimer);
+            frenzyMultiplier = 1;
+            buffIndicator.style.display = 'none';
+            updateUI();
+          } else {
+            buffIndicator.innerText = `🔥 БЕРСЕРК: УРОН x20 (${timeLeft}с)`;
+          }
+        }, 1000);
+
+        sword.remove();
+        updateUI();
+      });
+
+      document.body.appendChild(sword);
+      setTimeout(() => { if (sword.parentNode) sword.remove(); }, 4500);
+    }
+
+    // Спавн мечей каждые 6-10 секунд
+    setInterval(() => {
+      if (Math.random() < 0.8) spawnFlyingSword();
+    }, 7000);
+
+    // ================= ТАП ПО БОССУ =================
     function handleTap(e) {
       if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
 
       const isCrit = Math.random() < 0.08;
-      const damage = isCrit ? tapPower * 5 : tapPower;
+      let damage = (isCrit ? tapPower * 5 : tapPower) * frenzyMultiplier;
 
-      // Воспроизводим звук клика
-      if (isCrit) {
-        playCritSound();
-      } else {
-        playTapSound();
-      }
+      if (frenzyMultiplier > 1) playCritSound();
+      else if (isCrit) playCritSound();
+      else playTapSound();
 
       score += damage;
       currentHp = Math.max(0, currentHp - damage);
 
-      bossAvatar.classList.remove('shake');
-      void bossAvatar.offsetWidth;
-      bossAvatar.classList.add('shake');
+      // 3D-наклон
+      const rect = bossAvatar.getBoundingClientRect();
+      const clientX = e.clientX || (e.touches && e.touches[0].clientX) || rect.left + 80;
+      const clientY = e.clientY || (e.touches && e.touches[0].clientY) || rect.top + 60;
+      const touchX = clientX - rect.left;
+      const touchY = clientY - rect.top;
 
-      showDamage(damage, isCrit, e);
+      const tiltX = ((touchY - rect.height / 2) / (rect.height / 2)) * -18;
+      const tiltY = ((touchX - rect.width / 2) / (rect.width / 2)) * 18;
 
-      if (currentHp <= 0) {
-        onBossDefeated();
-      }
+      bossAvatar.style.transform = `rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale(0.94)`;
+      setTimeout(() => { bossAvatar.style.transform = 'rotateX(0deg) rotateY(0deg) scale(1)'; }, 90);
+
+      showDamage(damage, isCrit, touchX, touchY);
+
+      if (currentHp <= 0) onBossDefeated();
 
       updateUI();
       saveLocal();
     }
 
-    function showDamage(dmg, isCrit, e) {
-      const rect = bossWrapper.getBoundingClientRect();
-      const clientX = e.clientX || (e.touches && e.touches[0].clientX) || rect.left + 80;
-      const clientY = e.clientY || (e.touches && e.touches[0].clientY) || rect.top + 60;
-      const x = clientX - rect.left;
-      const y = clientY - rect.top;
-
+    function showDamage(dmg, isCrit, x, y) {
       const tag = document.createElement('div');
-      tag.className = `dmg-text ${isCrit ? 'crit' : ''}`;
-      tag.innerText = isCrit ? `CRIT! +${dmg}` : `+${dmg}`;
-      tag.style.left = `${x}px`;
-      tag.style.top = `${y}px`;
+      tag.className = `dmg-text ${frenzyMultiplier > 1 ? 'frenzy' : (isCrit ? 'crit' : '')}`;
+      tag.innerText = frenzyMultiplier > 1 ? `x20! +${formatNum(dmg)}` : (isCrit ? `CRIT! +${formatNum(dmg)}` : `+${formatNum(dmg)}`);
+      tag.style.left = `${x + 10}px`;
+      tag.style.top = `${y - 15}px`;
 
       bossWrapper.appendChild(tag);
-      setTimeout(() => tag.remove(), 650);
+      setTimeout(() => tag.remove(), 600);
     }
 
     function onBossDefeated() {
@@ -559,6 +696,7 @@
 
     bossAvatar.addEventListener('pointerdown', handleTap);
 
+    // Пассивный авто-доход
     setInterval(() => {
       if (autoPower > 0) {
         score += autoPower;
