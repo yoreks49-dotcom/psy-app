@@ -2,310 +2,430 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Запись к психологу</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+  <title>GlistCoin</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+    }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background-color: var(--tg-theme-bg-color, #f4f4f5);
-      color: var(--tg-theme-text-color, #18181b);
-      padding: 16px;
+      background: radial-gradient(circle at center top, #1c1917, #09090b);
+      color: #ffffff;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: space-between;
+      padding: 16px 14px;
+      overflow: hidden;
+      touch-action: manipulation;
     }
-    .card {
-      background: var(--tg-theme-secondary-bg-color, #ffffff);
-      border-radius: 18px;
-      padding: 20px;
-      width: 100%;
-      max-width: 360px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+
+    /* Верхняя панель */
+    .header {
       text-align: center;
+      margin-top: 6px;
     }
-    .avatar {
-      width: 76px;
-      height: 76px;
-      border-radius: 50%;
-      object-fit: cover;
-      margin-bottom: 8px;
-      border: 3px solid var(--tg-theme-button-color, #2481cc);
-    }
-    h3 { font-size: 19px; margin-bottom: 2px; }
-    .subtitle { color: #71717a; font-size: 13px; margin-bottom: 14px; }
-    
-    .section-title {
-      text-align: left;
-      font-size: 12px;
+    .coin-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(251, 191, 36, 0.12);
+      border: 1px solid rgba(251, 191, 36, 0.3);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 13px;
       font-weight: 700;
-      color: #71717a;
-      margin: 12px 0 6px 4px;
+      color: #fbbf24;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 1px;
     }
-    .option {
-      background: var(--tg-theme-bg-color, #f4f4f5);
-      border: 2px solid transparent;
-      border-radius: 10px;
-      padding: 10px 12px;
-      margin-bottom: 6px;
+    .score-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin: 10px 0 2px 0;
+    }
+    .score-icon {
+      font-size: 34px;
+    }
+    .score-val {
+      font-size: 42px;
+      font-weight: 900;
+      color: #ffffff;
+      letter-spacing: 0.5px;
+      text-shadow: 0 0 24px rgba(251, 191, 36, 0.4);
+    }
+    .auto-rate {
+      font-size: 12px;
+      color: #34d399;
+      font-weight: 600;
+    }
+
+    /* Круглый кликер с 3D перспективой */
+    .coin-wrapper {
+      position: relative;
+      perspective: 1000px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 250px;
+      height: 250px;
+      margin: auto 0;
+    }
+    .glist-coin {
+      width: 230px;
+      height: 230px;
+      border-radius: 50%;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      border: 6px solid #fbbf24;
+      box-shadow: 0 0 35px rgba(251, 191, 36, 0.45), inset 0 0 15px rgba(0,0,0,0.6);
       cursor: pointer;
+      transform-style: preserve-3d;
+      transition: transform 0.1s ease-out, box-shadow 0.1s ease;
+      touch-action: manipulation;
+    }
+    .glist-coin:active {
+      box-shadow: 0 0 50px rgba(251, 191, 36, 0.7);
+    }
+
+    /* Вылетающие частицы (фотка + цифра) */
+    .pop-particle {
+      position: absolute;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      pointer-events: none;
+      font-size: 24px;
+      font-weight: 900;
+      color: #fbbf24;
+      text-shadow: 0 0 8px rgba(0, 0, 0, 0.9);
+      animation: floatAndFade 0.75s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+      z-index: 100;
+    }
+    .mini-pic {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid #fbbf24;
+      object-fit: cover;
+    }
+    @keyframes floatAndFade {
+      0% {
+        opacity: 1;
+        transform: translate(0, 0) scale(0.9) rotate(0deg);
+      }
+      100% {
+        opacity: 0;
+        transform: translate(calc(-20px + 40px * var(--rx, 0.5)), -90px) scale(1.4) rotate(calc(-20deg + 40deg * var(--rx, 0.5)));
+      }
+    }
+
+    /* Нижний блок: Энергия */
+    .bottom-section {
+      width: 100%;
+      max-width: 350px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .energy-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      text-align: left;
+      font-size: 13px;
+      font-weight: 700;
+      color: #d4d4d8;
     }
-    .option.active {
-      border-color: var(--tg-theme-button-color, #2481cc);
-      background: rgba(36, 129, 204, 0.08);
+    .energy-bar-bg {
+      width: 100%;
+      height: 12px;
+      background: #27272a;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid #3f3f46;
+      margin-top: 4px;
     }
-    .option span { font-weight: 500; font-size: 14px; }
-    .option b { font-size: 14px; color: var(--tg-theme-button-color, #2481cc); }
+    .energy-bar-fill {
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, #f59e0b, #fbbf24);
+      border-radius: 999px;
+      transition: width 0.15s ease;
+    }
 
-    .grid-days, .grid-times {
+    /* Кнопки прокачки (Бусты) */
+    .upgrades-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 6px;
-      margin-bottom: 6px;
     }
-
-    .btn-slot {
-      padding: 10px 2px;
-      font-size: 12px;
-      font-weight: 600;
-      border-radius: 8px;
-      border: 1.5px solid transparent;
+    .boost-btn {
+      background: rgba(39, 39, 42, 0.8);
+      border: 1px solid #3f3f46;
+      border-radius: 12px;
+      padding: 8px 4px;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
       cursor: pointer;
       transition: all 0.15s ease;
     }
-
-    /* Зеленый - свободный слот */
-    .btn-slot.free {
-      background: #ecfdf5;
-      color: #047857;
-      border-color: #a7f3d0;
+    .boost-btn:active {
+      transform: scale(0.95);
+      border-color: #fbbf24;
     }
-    .btn-slot.free.active {
-      background: #059669;
-      color: #ffffff;
-      border-color: #059669;
+    .boost-btn.disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      border-color: #27272a;
     }
-
-    /* Красный - занятый слот */
-    .btn-slot.busy {
-      background: #fef2f2 !important;
-      color: #b91c1c !important;
-      border-color: #fca5a5 !important;
-      cursor: not-allowed !important;
-      text-decoration: line-through;
-      opacity: 0.65;
+    .boost-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: #e4e4e7;
     }
-
-    /* Раздельный блок телефона без залипаний маски */
-    .phone-container {
-      display: flex;
-      align-items: center;
-      background: var(--tg-theme-bg-color, #f4f4f5);
-      border: 1px solid #d4d4d8;
-      border-radius: 10px;
-      padding: 0 12px;
+    .boost-lvl {
+      font-size: 9px;
+      color: #a1a1aa;
     }
-    .phone-prefix {
-      font-size: 15px;
-      font-weight: 600;
-      color: var(--tg-theme-text-color, #18181b);
-      padding-right: 4px;
-      user-select: none;
+    .boost-cost {
+      font-size: 11px;
+      font-weight: 800;
+      color: #fbbf24;
+      margin-top: 2px;
     }
-    .phone-input-clean {
-      width: 100%;
-      padding: 12px 0;
-      border: none;
-      background: transparent;
-      outline: none;
-      font-size: 15px;
-      font-weight: 500;
-      color: var(--tg-theme-text-color, #18181b);
-      letter-spacing: 1px;
-    }
-
-    .error-msg {
-      color: #ef4444;
-      font-size: 12px;
-      text-align: left;
-      margin: 3px 0 0 4px;
-      display: none;
-    }
-
-    .main-btn {
-      background-color: var(--tg-theme-button-color, #2481cc);
-      color: var(--tg-theme-button-text-color, #ffffff);
-      border: none;
-      border-radius: 12px;
-      width: 100%;
-      padding: 14px;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      margin-top: 14px;
-    }
-    .main-btn:active { opacity: 0.85; }
   </style>
 </head>
 <body>
 
-  <div class="card">
-    <img class="avatar" src="https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=300" alt="Анна">
-    <h3>Анна Смирнова</h3>
-    <p class="subtitle">Практикующий психолог</p>
-
-    <div class="section-title">Услуга</div>
-    <div class="option active" onclick="selectService(this, 'Онлайн-сессия - 3500 ₽')">
-      <span>Онлайн-сессия (1 час)</span>
-      <b>3 500 ₽</b>
+  <!-- Шапка -->
+  <div class="header">
+    <div class="coin-badge">🔥 GlistCoin Official</div>
+    <div class="score-container">
+      <span class="score-icon">🪙</span>
+      <span class="score-val" id="score">0</span>
     </div>
-    <div class="option" onclick="selectService(this, 'Пакет из 4 сессий - 12000 ₽')">
-      <span>Пакет 4 сессии</span>
-      <b>12 000 ₽</b>
+    <div class="auto-rate" id="autoRate">+0 / сек</div>
+  </div>
+
+  <!-- Кликер с 3D-наклоном -->
+  <div class="coin-wrapper" id="coinWrapper">
+    <div class="glist-coin" id="coin"></div>
+  </div>
+
+  <!-- Нижняя панель с энергией и бустами -->
+  <div class="bottom-section">
+    <div>
+      <div class="energy-row">
+        <span>⚡ Энергия</span>
+        <span id="energyText">1000 / 1000</span>
+      </div>
+      <div class="energy-bar-bg">
+        <div class="energy-bar-fill" id="energyFill"></div>
+      </div>
     </div>
 
-    <div class="section-title">Дата</div>
-    <div class="grid-days" id="daysContainer"></div>
+    <div class="upgrades-grid">
+      <button type="button" class="boost-btn" id="btnMultitap" onclick="buyMultitap()">
+        <span class="boost-title">👆 Мультитап</span>
+        <span class="boost-lvl" id="lvlMultitap">Lvl 1</span>
+        <span class="boost-cost" id="costMultitap">50 🪙</span>
+      </button>
 
-    <div class="section-title">Время (🟢 свободно / 🔴 занято)</div>
-    <div class="grid-times" id="timesContainer"></div>
+      <button type="button" class="boost-btn" id="btnEnergy" onclick="buyEnergyLimit()">
+        <span class="boost-title">🔋 Энергия</span>
+        <span class="boost-lvl" id="lvlEnergy">Lvl 1</span>
+        <span class="boost-cost" id="costEnergy">100 🪙</span>
+      </button>
 
-    <div class="section-title">Номер телефона</div>
-    <div class="phone-container">
-      <span class="phone-prefix">+7 (9</span>
-      <input type="tel" id="phoneTail" class="phone-input-clean" placeholder="XX) XXX-XX-XX" maxlength="9" inputmode="numeric">
+      <button type="button" class="boost-btn" id="btnAuto" onclick="buyAutoBot()">
+        <span class="boost-title">🤖 Автобот</span>
+        <span class="boost-lvl" id="lvlAuto">Lvl 0</span>
+        <span class="boost-cost" id="costAuto">200 🪙</span>
+      </button>
     </div>
-    <div id="phoneError" class="error-msg">Введите ровно 9 оставшихся цифр</div>
-
-    <button class="main-btn" onclick="submitBooking()">Подтвердить запись</button>
   </div>
 
   <script>
-    const tg = window.Telegram.WebApp;
-    tg.ready();
-    tg.expand();
-
-    const params = new URLSearchParams(window.location.search);
-    const bookedRaw = params.get('booked') ? decodeURIComponent(params.get('booked')) : '';
-    const bookedList = bookedRaw ? bookedRaw.split(',') : [];
-
-    let selectedService = "Онлайн-сессия - 3500 ₽";
-    let selectedDate = "";
-    let selectedTime = "";
-
-    const workHours = ["10:00", "11:00", "12:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00"];
-
-    function selectService(el, text) {
-      document.querySelectorAll('.option').forEach(i => i.classList.remove('active'));
-      el.classList.add('active');
-      selectedService = text;
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+      tg.ready();
+      tg.expand();
     }
 
-    // Дни
-    const daysContainer = document.getElementById('daysContainer');
-    const today = new Date();
-    const days = [];
+    // Твоя картинка GlistCoin (загружена как аватарка коина)
+    const COIN_IMG_URL = "https://images.weserv.nl/?url=https://i.ibb.co/6R2nQ6w/glist.png&default=https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg";
+    
+    // Подставляем картинку на коин
+    const coin = document.getElementById('coin');
+    coin.style.backgroundImage = `url('https://picsum.photos/400')`; // Резерв
+    
+    // Состояние игры (сохраняется в localStorage)
+    let score = parseInt(localStorage.getItem('gc_score')) || 0;
+    let tapPower = parseInt(localStorage.getItem('gc_tap')) || 1;
+    let autoPower = parseInt(localStorage.getItem('gc_auto')) || 0;
+    let maxEnergy = parseInt(localStorage.getItem('gc_max_energy')) || 1000;
+    let energy = parseInt(localStorage.getItem('gc_cur_energy')) || maxEnergy;
 
-    for (let i = 0; i < 6; i++) {
-      const d = new Date();
-      d.setDate(today.getDate() + i);
-      const dd = String(d.getDate()).padStart(2, '0');
-      const mm = String(d.getMonth() + 1).padStart(2, '0');
-      const yyyy = d.getFullYear();
-      const dayKey = `${dd}.${mm}.${yyyy}`;
-      const dayName = d.toLocaleDateString('ru-RU', { weekday: 'short' });
-      days.push({ key: dayKey, label: `${dd}.${mm} (${dayName})` });
+    let costTap = parseInt(localStorage.getItem('gc_cost_tap')) || 50;
+    let costEnergy = parseInt(localStorage.getItem('gc_cost_energy')) || 100;
+    let costAuto = parseInt(localStorage.getItem('gc_cost_auto')) || 200;
+
+    const scoreEl = document.getElementById('score');
+    const autoRateEl = document.getElementById('autoRate');
+    const energyText = document.getElementById('energyText');
+    const energyFill = document.getElementById('energyFill');
+    const coinWrapper = document.getElementById('coinWrapper');
+
+    function saveState() {
+      localStorage.setItem('gc_score', score);
+      localStorage.setItem('gc_tap', tapPower);
+      localStorage.setItem('gc_auto', autoPower);
+      localStorage.setItem('gc_max_energy', maxEnergy);
+      localStorage.setItem('gc_cur_energy', Math.round(energy));
+      localStorage.setItem('gc_cost_tap', costTap);
+      localStorage.setItem('gc_cost_energy', costEnergy);
+      localStorage.setItem('gc_cost_auto', costAuto);
     }
 
-    days.forEach((day, index) => {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'btn-slot free' + (index === 0 ? ' active' : '');
-      btn.innerText = day.label;
-      btn.onclick = () => {
-        document.querySelectorAll('#daysContainer .btn-slot').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        selectedDate = day.key;
-        renderTimes();
-      };
-      daysContainer.appendChild(btn);
-    });
+    function updateUI() {
+      scoreEl.innerText = score.toLocaleString('ru-RU');
+      autoRateEl.innerText = `+${autoPower} / сек`;
+      energyText.innerText = `${Math.round(energy)} / ${maxEnergy}`;
+      energyFill.style.width = `${(energy / maxEnergy) * 100}%`;
 
-    selectedDate = days[0].key;
+      document.getElementById('lvlMultitap').innerText = `+${tapPower}`;
+      document.getElementById('costMultitap').innerText = `${costTap.toLocaleString('ru-RU')} 🪙`;
+      document.getElementById('btnMultitap').classList.toggle('disabled', score < costTap);
 
-    // Слоты времени
-    function renderTimes() {
-      const container = document.getElementById('timesContainer');
-      container.innerHTML = '';
-      selectedTime = "";
+      document.getElementById('lvlEnergy').innerText = `${maxEnergy}`;
+      document.getElementById('costEnergy').innerText = `${costEnergy.toLocaleString('ru-RU')} 🪙`;
+      document.getElementById('btnEnergy').classList.toggle('disabled', score < costEnergy);
 
-      workHours.forEach(time => {
-        const fullSlot = `${selectedDate} в ${time}`;
-        const isBusy = bookedList.includes(fullSlot);
-
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.innerText = time;
-
-        if (isBusy) {
-          btn.className = 'btn-slot busy';
-          btn.disabled = true;
-        } else {
-          btn.className = 'btn-slot free';
-          btn.onclick = () => {
-            document.querySelectorAll('#timesContainer .btn-slot.free').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            selectedTime = time;
-          };
-          if (!selectedTime) {
-            btn.classList.add('active');
-            selectedTime = time;
-          }
-        }
-        container.appendChild(btn);
-      });
+      document.getElementById('lvlAuto').innerText = `+${autoPower}/с`;
+      document.getElementById('costAuto').innerText = `${costAuto.toLocaleString('ru-RU')} 🪙`;
+      document.getElementById('btnAuto').classList.toggle('disabled', score < costAuto);
     }
 
-    renderTimes();
-
-    // Чистый ввод хвоста номера (удаление Backspace работает идеально)
-    const phoneTail = document.getElementById('phoneTail');
-    phoneTail.addEventListener('input', function() {
-      this.value = this.value.replace(/\D/g, '');
-      document.getElementById('phoneError').style.display = 'none';
-    });
-
-    function submitBooking() {
-      const tail = phoneTail.value.trim();
-
-      if (!selectedTime) {
-        tg.showAlert("На выбранный день нет свободных слотов.");
+    // 3D-наклон при тапе
+    function handleTap(e) {
+      if (energy < tapPower) {
+        if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('warning');
         return;
       }
 
-      if (tail.length !== 9) {
-        document.getElementById('phoneError').style.display = 'block';
-        tg.showAlert("Пожалуйста, введите все 9 цифр после +7 (9.");
-        return;
+      // Виброотклик iPhone
+      if (tg?.HapticFeedback) {
+        tg.HapticFeedback.impactOccurred('medium');
       }
 
-      const formattedPhone = `+7 (9${tail.slice(0, 2)}) ${tail.slice(2, 5)}-${tail.slice(5, 7)}-${tail.slice(7, 9)}`;
-      const slot = `${selectedDate} в ${selectedTime}`;
+      score += tapPower;
+      energy -= tapPower;
 
-      tg.sendData(JSON.stringify({
-        service: selectedService,
-        datetime_slot: slot,
-        phone: formattedPhone
-      }));
-      tg.close();
+      // Расчет 3D-наклона от точки касания
+      const rect = coin.getBoundingClientRect();
+      const touchX = (e.clientX || (e.touches && e.touches[0].clientX)) - rect.left;
+      const touchY = (e.clientY || (e.touches && e.touches[0].clientY)) - rect.top;
+
+      const tiltX = ((touchY - rect.height / 2) / (rect.height / 2)) * -18;
+      const tiltY = ((touchX - rect.width / 2) / (rect.width / 2)) * 18;
+
+      coin.style.transform = `rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale(0.96)`;
+      setTimeout(() => {
+        coin.style.transform = 'rotateX(0deg) rotateY(0deg) scale(1)';
+      }, 100);
+
+      // Создание вылетающей частицы (+число и фотка)
+      createParticle(touchX, touchY);
+
+      updateUI();
+      saveState();
     }
+
+    function createParticle(x, y) {
+      const particle = document.createElement('div');
+      particle.className = 'pop-particle';
+      particle.style.setProperty('--rx', Math.random());
+      particle.style.left = `${x + 10}px`;
+      particle.style.top = `${y - 10}px`;
+
+      particle.innerHTML = `<span>+${tapPower}</span>`;
+      coinWrapper.appendChild(particle);
+
+      setTimeout(() => particle.remove(), 750);
+    }
+
+    coin.addEventListener('pointerdown', handleTap);
+
+    // Покупка Мультитапа
+    function buyMultitap() {
+      if (score >= costTap) {
+        if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+        score -= costTap;
+        tapPower += 1;
+        costTap = Math.round(costTap * 1.8);
+        updateUI();
+        saveState();
+      }
+    }
+
+    // Покупка лимита энергии
+    function buyEnergyLimit() {
+      if (score >= costEnergy) {
+        if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+        score -= costEnergy;
+        maxEnergy += 500;
+        energy += 500;
+        costEnergy = Math.round(costEnergy * 1.7);
+        updateUI();
+        saveState();
+      }
+    }
+
+    // Покупка автобота
+    function buyAutoBot() {
+      if (score >= costAuto) {
+        if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+        score -= costAuto;
+        autoPower += 1;
+        costAuto = Math.round(costAuto * 2.0);
+        updateUI();
+        saveState();
+      }
+    }
+
+    // Пассивный доход каждую секунду
+    setInterval(() => {
+      if (autoPower > 0) {
+        score += autoPower;
+        updateUI();
+        saveState();
+      }
+    }, 1000);
+
+    // Восстановление энергии (+3 каждые 0.5с)
+    setInterval(() => {
+      if (energy < maxEnergy) {
+        energy = Math.min(maxEnergy, energy + 4);
+        updateUI();
+      }
+    }, 500);
+
+    updateUI();
   </script>
 </body>
 </html>
